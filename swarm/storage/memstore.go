@@ -19,8 +19,6 @@
 package storage
 
 import (
-	"bytes"
-	"fmt"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/metrics"
@@ -53,9 +51,6 @@ func (m *MemStore) Get(key Key) (*Chunk, error) {
 	c, ok := m.m[string(key[:])]
 	if !ok {
 		return nil, ErrChunkNotFound
-	}
-	if !bytes.Equal(c.Key, key) {
-		panic(fmt.Errorf("MemStore.Get: chunk key %s != req key %s", c.Key.Hex(), key.Hex()))
 	}
 	return c, nil
 }
