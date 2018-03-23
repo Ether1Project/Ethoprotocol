@@ -20,7 +20,6 @@ import (
 	"github.com/ethereum/go-ethereum/swarm/network"
 	"github.com/ethereum/go-ethereum/swarm/storage"
 	whisper "github.com/ethereum/go-ethereum/whisper/whisperv5"
-	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 const (
@@ -95,7 +94,7 @@ type Pss struct {
 
 	// sending and forwarding
 	fwdPool         map[string]*protocols.Peer // keep track of all peers sitting on the pssmsg routing layer
-	fwdPoolMu       deadlock.Mutex
+	fwdPoolMu       sync.Mutex
 	fwdCache        map[pssDigest]pssCacheEntry // checksum of unique fields from pssmsg mapped to expiry, cache to determine whether to drop msg
 	fwdCacheMu      sync.Mutex
 	cacheTTL        time.Duration // how long to keep messages in fwdCache (not implemented)

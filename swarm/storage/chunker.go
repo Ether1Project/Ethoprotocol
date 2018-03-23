@@ -463,7 +463,6 @@ func (self *LazyChunkReader) join(b []byte, off int64, eoff int64, depth int, tr
 func retrieve(key Key, chunkC chan *Chunk, quitC chan bool) *Chunk {
 	log.Debug("retrieve", "key", key)
 	chunk := NewChunk(key, nil)
-	close(chunk.dbStored)
 	chunk.C = make(chan bool)
 	// submit chunk for retrieval
 	log.Debug("submit chunk for retrieval", "key", key)

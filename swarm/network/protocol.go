@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -31,7 +32,6 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/protocols"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/swarm/state"
-	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 //metrics variables
@@ -114,7 +114,7 @@ type BzzConfig struct {
 type Bzz struct {
 	*Hive
 	localAddr    *BzzAddr
-	mtx          deadlock.Mutex
+	mtx          sync.Mutex
 	handshakes   map[discover.NodeID]*HandshakeMsg
 	streamerSpec *protocols.Spec
 	streamerRun  func(*BzzPeer) error

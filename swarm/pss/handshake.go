@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -15,7 +16,6 @@ import (
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
-	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 const (
@@ -90,7 +90,7 @@ func NewHandshakeParams() *HandshakeParams {
 type HandshakeController struct {
 	pss                  *Pss
 	keyC                 map[string]chan []string // adds a channel to report when a handshake succeeds
-	lock                 deadlock.Mutex
+	lock                 sync.Mutex
 	symKeyRequestTimeout time.Duration
 	symKeyExpiryTimeout  time.Duration
 	symKeySendLimit      uint16

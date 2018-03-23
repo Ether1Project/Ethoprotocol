@@ -20,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/log"
@@ -27,7 +28,6 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/discover"
 	"github.com/ethereum/go-ethereum/p2p/protocols"
 	p2ptest "github.com/ethereum/go-ethereum/p2p/testing"
-	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 var (
@@ -41,7 +41,7 @@ func init() {
 }
 
 type testStore struct {
-	deadlock.Mutex
+	sync.Mutex
 
 	values map[string][]byte
 }

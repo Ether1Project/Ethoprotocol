@@ -3,6 +3,7 @@ package pss
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -10,7 +11,6 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/swarm/storage"
 	whisper "github.com/ethereum/go-ethereum/whisper/whisperv5"
-	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	topicHashMutex = deadlock.Mutex{}
+	topicHashMutex = sync.Mutex{}
 	topicHashFunc  = storage.MakeHashFunc("SHA256")()
 )
 
