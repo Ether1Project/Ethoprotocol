@@ -24,11 +24,11 @@ import (
 	"fmt"
 	"hash"
 	"io"
-	"sync"
 
 	"github.com/ethereum/go-ethereum/bmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto/sha3"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 const MaxPO = 7
@@ -178,7 +178,7 @@ type Chunk struct {
 	ReqC      chan bool // to signal the request done
 	dbStored  chan bool // never remove a chunk from memStore before it is written to dbStore
 	errored   bool      // flag which is set when the chunk request has errored or timeouted
-	erroredMu sync.Mutex
+	erroredMu deadlock.Mutex
 }
 
 func (c *Chunk) SetErrored(val bool) {

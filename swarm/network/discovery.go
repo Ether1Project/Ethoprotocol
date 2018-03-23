@@ -18,9 +18,9 @@ package network
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/ethereum/go-ethereum/pot"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 // discovery bzz extension for requesting and relaying node address records
@@ -30,7 +30,7 @@ type discPeer struct {
 	*BzzPeer
 	overlay   Overlay
 	sentPeers bool // whether we already sent peer closer to this address
-	mtx       sync.Mutex
+	mtx       deadlock.Mutex
 	peers     map[string]bool // tracks node records sent to the peer
 	depth     uint8           // the proximity order advertised by remote as depth of saturation
 }

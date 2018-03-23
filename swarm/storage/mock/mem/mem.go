@@ -25,10 +25,10 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/swarm/storage/mock"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 // GlobalStore stores all chunk data and also keys and node addresses relations.
@@ -36,7 +36,7 @@ import (
 type GlobalStore struct {
 	nodes map[string]map[common.Address]struct{}
 	data  map[string][]byte
-	mu    sync.Mutex
+	mu    deadlock.Mutex
 }
 
 // NewGlobalStore creates a new instance of GlobalStore.

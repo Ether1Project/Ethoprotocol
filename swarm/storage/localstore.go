@@ -19,11 +19,11 @@ package storage
 import (
 	"encoding/binary"
 	"fmt"
-	"sync"
 
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/swarm/storage/mock"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 var (
@@ -50,7 +50,7 @@ func NewDefaultStoreParams() (self *StoreParams) {
 type LocalStore struct {
 	memStore *MemStore
 	DbStore  *LDBStore
-	mu       sync.Mutex
+	mu       deadlock.Mutex
 }
 
 // This constructor uses MemStore and DbStore as components

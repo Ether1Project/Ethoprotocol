@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -24,6 +23,7 @@ import (
 	"github.com/ethereum/go-ethereum/swarm/state"
 	"github.com/ethereum/go-ethereum/swarm/storage"
 	whisper "github.com/ethereum/go-ethereum/whisper/whisperv5"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 const (
@@ -270,7 +270,7 @@ func newServices() adapters.Services {
 
 // copied from swarm/network/protocol_test_go
 type testStore struct {
-	sync.Mutex
+	deadlock.Mutex
 
 	values map[string][]byte
 }

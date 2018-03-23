@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/log"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 /*
@@ -60,7 +61,7 @@ type DPA struct {
 	retrieveC chan *Chunk
 	Chunker   Chunker
 
-	lock    sync.Mutex
+	lock    deadlock.Mutex
 	running bool
 	wg      *sync.WaitGroup
 	quitC   chan bool

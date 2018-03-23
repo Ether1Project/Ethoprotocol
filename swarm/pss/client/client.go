@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -17,6 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/swarm/pss"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 const (
@@ -41,7 +41,7 @@ type Client struct {
 	topicsC chan []byte
 	quitC   chan struct{}
 
-	lock sync.Mutex
+	lock deadlock.Mutex
 }
 
 // implements p2p.MsgReadWriter

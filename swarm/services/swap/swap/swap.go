@@ -19,10 +19,10 @@ package swap
 import (
 	"fmt"
 	"math/big"
-	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/log"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 // SwAP Swarm Accounting Protocol with
@@ -85,11 +85,11 @@ type InPayment interface {
 // swap is the swarm accounting protocol instance
 // * pairwise accounting and payments
 type Swap struct {
-	lock    sync.Mutex // mutex for balance access
-	balance int        // units of chunk/retrieval request
-	local   *Params    // local peer's swap parameters
-	remote  *Profile   // remote peer's swap profile
-	proto   Protocol   // peer communication protocol
+	lock    deadlock.Mutex // mutex for balance access
+	balance int            // units of chunk/retrieval request
+	local   *Params        // local peer's swap parameters
+	remote  *Profile       // remote peer's swap profile
+	proto   Protocol       // peer communication protocol
 	Payment
 }
 

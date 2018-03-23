@@ -21,12 +21,13 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/simulations"
 	"github.com/ethereum/go-ethereum/p2p/simulations/adapters"
 	"github.com/ethereum/go-ethereum/swarm/network"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 var noDiscovery = flag.Bool("no-discovery", false, "disable discovery (useful if you want to load a snapshot)")
 
 type Simulation struct {
-	mtx    sync.Mutex
+	mtx    deadlock.Mutex
 	stores map[discover.NodeID]*adapters.SimStateStore
 }
 

@@ -19,13 +19,13 @@ package network
 import (
 	"fmt"
 	"math/rand"
-	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/p2p/discover"
 	"github.com/ethereum/go-ethereum/swarm/state"
+	deadlock "github.com/sasha-s/go-deadlock"
 )
 
 /*
@@ -82,7 +82,7 @@ type Hive struct {
 	Store       state.Store          // storage interface to save peers across sessions
 	addPeer     func(*discover.Node) // server callback to connect to a peer
 	// bookkeeping
-	lock   sync.Mutex
+	lock   deadlock.Mutex
 	ticker *time.Ticker
 }
 
