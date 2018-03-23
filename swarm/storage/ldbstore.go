@@ -700,9 +700,9 @@ func (s *LDBStore) get(key Key) (chunk *Chunk, err error) {
 			hash := hasher.Sum(nil)
 
 			if !bytes.Equal(hash, key) {
-				log.Error("apparent key/hash mismatch", "hash", hash, "key", key[:])
+				log.Error(fmt.Sprintf("Apparent key/hash mismatch. Hash %x, key %v", hash, key[:]))
 				s.delete(indx.Idx, getIndexKey(key), s.po(key))
-				log.Error("invalid chunk in database")
+				log.Error("Invalid Chunk in Database. Please repair with command: 'swarm cleandb'")
 			}
 		}
 
