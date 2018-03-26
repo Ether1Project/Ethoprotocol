@@ -36,10 +36,12 @@ import (
 
 // Ethash proof-of-work protocol constants.
 var (
-	FrontierBlockReward    *big.Int = big.NewInt(5e+18) // Block reward in wei for successfully mining a block
-	ByzantiumBlockReward   *big.Int = big.NewInt(3e+18) // Block reward in wei for successfully mining a block upward from Byzantium
-	maxUncles                       = 2                 // Maximum number of uncles allowed in a single block
-	allowedFutureBlockTime          = 15 * time.Second  // Max time from current time allowed for blocks, before they're considered future blocks
+        preMasternodeEraBlockReward    *big.Int = big.NewInt(9e+18) // Block reward before mastenode release
+	postMasternodeEraBlockReward   *big.Int = big.NewInt(7e+18) // Block reward after mastenode release
+	masternodeBlockReward          *big.Int = big.NewInt(2e+18) 
+	developmentBlockReward         *big.Int = big.NewInt(1e+18) 
+	maxUncles                               = 2                 // Maximum number of uncles allowed in a single block
+	allowedFutureBlockTime                  = 15 * time.Second  // Max time from current time allowed for blocks, before they're considered future blocks
 )
 
 // Various error messages to mark blocks invalid. These should be private to
@@ -53,6 +55,7 @@ var (
 	errDuplicateUncle    = errors.New("duplicate uncle")
 	errUncleIsAncestor   = errors.New("uncle is ancestor")
 	errDanglingUncle     = errors.New("uncle's parent is not ancestor")
+	errNonceOutOfRange   = errors.New("nonce out of range")
 	errInvalidDifficulty = errors.New("non-positive difficulty")
 	errInvalidMixDigest  = errors.New("invalid mix digest")
 	errInvalidPoW        = errors.New("invalid proof-of-work")
@@ -297,6 +300,8 @@ func (ethash *Ethash) CalcDifficulty(chain consensus.ChainReader, time uint64, p
 func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Header) *big.Int {
 	next := new(big.Int).Add(parent.Number, big1)
 	switch {
+	case isForked(big.NewInt(2000001), next):
+		return calcDifficultyPirl(time, parent)
 	case config.IsByzantium(next):
 		return calcDifficultyByzantium(time, parent)
 	case config.IsHomestead(next):
@@ -305,7 +310,12 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 		return calcDifficultyFrontier(time, parent)
 	}
 }
-
+func isForked(s, head *big.Int) bool {
+	if s == nil || head == nil {
+		return false
+	}
+	return s.Cmp(head) <= 0
+}
 // Some weird constants to avoid constant memory allocs for them.
 var (
 	expDiffPeriod = big.NewInt(100000)
@@ -316,7 +326,26 @@ var (
 	bigMinus99    = big.NewInt(-99)
 	big2999999    = big.NewInt(2999999)
 )
+func calcDifficultyPirl(time uint64, parent *types.Header) *big.Int {
+	diff := new(big.Int)
+	adjust := new(big.Int).Div(parent.Difficulty, big10)
+	bigTime := new(big.Int)
+	bigParentTime := new(big.Int)
 
+	bigTime.SetUint64(time)
+	bigParentTime.Set(parent.Time)
+
+	if bigTime.Sub(bigTime, bigParentTime).Cmp(params.DurationLimit) < 0 {
+		diff.Add(parent.Difficulty, adjust)
+	} else {
+		diff.Sub(parent.Difficulty, adjust)
+	}
+	if diff.Cmp(params.MinimumDifficulty) < 0 {
+		diff.Set(params.MinimumDifficulty)
+	}
+	//fmt.Println(diff)
+	return diff
+}
 // calcDifficultyByzantium is the difficulty adjustment algorithm. It returns
 // the difficulty that a new block should have when created at time given the
 // parent block's time and difficulty. The calculation uses the Byzantium rules.
@@ -355,7 +384,7 @@ func calcDifficultyByzantium(time uint64, parent *types.Header) *big.Int {
 	if x.Cmp(params.MinimumDifficulty) < 0 {
 		x.Set(params.MinimumDifficulty)
 	}
-	// calculate a fake block number for the ice-age delay:
+	// calculate a fake block numer for the ice-age delay:
 	//   https://github.com/ethereum/EIPs/pull/669
 	//   fake_block_number = min(0, block.number - 3_000_000
 	fakeBlockNumber := new(big.Int)
@@ -473,13 +502,18 @@ func (ethash *Ethash) VerifySeal(chain consensus.ChainReader, header *types.Head
 	if ethash.shared != nil {
 		return ethash.shared.VerifySeal(chain, header)
 	}
+	// Sanity check that the block number is below the lookup table size (60M blocks)
+	number := header.Number.Uint64()
+	if number/epochLength >= maxEpoch {
+		// Go < 1.7 cannot calculate new cache/dataset sizes (no fast prime check)
+		return errNonceOutOfRange
+	}
 	// Ensure that we have a valid difficulty for the block
 	if header.Difficulty.Sign() <= 0 {
 		return errInvalidDifficulty
 	}
-	// Recompute the digest and PoW value and verify against the header
-	number := header.Number.Uint64()
 
+	// Recompute the digest and PoW value and verify against the header
 	cache := ethash.cache(number)
 	size := datasetSize(number)
 	if ethash.config.PowMode == ModeTest {
@@ -532,11 +566,13 @@ var (
 // reward. The total reward consists of the static block reward and rewards for
 // included uncles. The coinbase of each uncle block is also rewarded.
 func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header) {
+	// Set pre & pose masternode eras
+	var masternodeEraBlock int64 = 200000
 	// Select the correct block reward based on chain progression
-	blockReward := FrontierBlockReward
-	if config.IsByzantium(header.Number) {
-		blockReward = ByzantiumBlockReward
-	}
+	var blockReward = preMasternodeEraBlockReward
+	if header.Number.Int64() > masternodeEraBlock {
+		blockReward = postMasternodeEraBlockReward
+        }
 	// Accumulate the rewards for the miner and any included uncles
 	reward := new(big.Int).Set(blockReward)
 	r := new(big.Int)
@@ -551,4 +587,10 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		reward.Add(reward, r)
 	}
 	state.AddBalance(header.Coinbase, reward)
+	// Developement Fund Address
+	state.AddBalance(common.HexToAddress("0x0d20f8b8bef42d768555cf9c1fa7401d930b3484"), developmentBlockReward)
+	// Masternode Fund address
+	if header.Number.Int64() > masternodeEraBlock {
+		state.AddBalance(common.HexToAddress("0x4b0b5aBfB408eC93a40369FB1Ed29e29D5504a43"), masternodeBlockReward)
+        }
 }
