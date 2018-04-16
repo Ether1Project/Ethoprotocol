@@ -36,6 +36,9 @@ import (
 
 // Ethash proof-of-work protocol constants.
 var (
+	FrontierBlockReward    *big.Int = big.NewInt(7e+18) // Block reward in wei for successfully mining a block
+	ByzantiumBlockReward   *big.Int = big.NewInt(7e+18) // Block reward in wei for successfully mining a block upward from Byzantium
+	
 	minerBlockReward               *big.Int = big.NewInt(7e+18)
 	masternodeBlockReward          *big.Int = big.NewInt(2e+18) 
 	developmentBlockReward         *big.Int = big.NewInt(1e+18) 
