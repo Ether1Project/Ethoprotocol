@@ -36,8 +36,7 @@ import (
 
 // Ethash proof-of-work protocol constants.
 var (
-        preMasternodeEraBlockReward    *big.Int = big.NewInt(9e+18) // Block reward before mastenode release
-	postMasternodeEraBlockReward   *big.Int = big.NewInt(7e+18) // Block reward after mastenode release
+	minerBlockReward               *big.Int = big.NewInt(7e+18)
 	masternodeBlockReward          *big.Int = big.NewInt(2e+18) 
 	developmentBlockReward         *big.Int = big.NewInt(1e+18) 
 	maxUncles                               = 2                 // Maximum number of uncles allowed in a single block
@@ -535,13 +534,8 @@ var (
 // reward. The total reward consists of the static block reward and rewards for
 // included uncles. The coinbase of each uncle block is also rewarded.
 func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header) {
-	// Set pre & pose masternode eras
-	var masternodeEraBlock int64 = 200000
-	// Select the correct block reward based on chain progression
-	var blockReward = preMasternodeEraBlockReward
-	if header.Number.Int64() > masternodeEraBlock {
-		blockReward = postMasternodeEraBlockReward
-        }
+	// Set the miner block reward
+	var blockReward = minerBlockReward
 	// Accumulate the rewards for the miner and any included uncles
 	reward := new(big.Int).Set(blockReward)
 	r := new(big.Int)
@@ -559,7 +553,5 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	// Developement Fund Address
 	state.AddBalance(common.HexToAddress("0xaa0ddfdd8f8c408aae1bff41c08f6f889c24b338"), developmentBlockReward)
 	// Masternode Fund address
-	if header.Number.Int64() > masternodeEraBlock {
-		state.AddBalance(common.HexToAddress("0x2e3d2ee4bee8df0100dc383a09c09bf7badf4b9d"), masternodeBlockReward)
-        }
+        state.AddBalance(common.HexToAddress("0x2e3d2ee4bee8df0100dc383a09c09bf7badf4b9d"), masternodeBlockReward)
 }
