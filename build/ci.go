@@ -402,7 +402,7 @@ func archiveBasename(arch string, env build.Environment) string {
 func archiveVersion(env build.Environment) string {
 	version := build.VERSION()
 	if isUnstableBuild(env) {
-		version += "-unstable"
+		version += ""
 	}
 	if env.Commit != "" {
 		version += "-" + env.Commit[:8]
