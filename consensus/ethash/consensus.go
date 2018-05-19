@@ -36,16 +36,10 @@ import (
 
 // Ethash proof-of-work protocol constants.
 var (
-	minerBlockReward := big.NewInt(0);
-	minerBlockReward.Add( count, big.NewInt( 5000000000000000000 ) );
-	minerBlockReward.Add( count, big.NewInt( 5000000000000000000 ) );
-	FrontierBlockReward  := big.NewInt(0);
-	FrontierBlockReward .Add( count, big.NewInt( 5000000000000000000 ) );
-	FrontierBlockReward .Add( count, big.NewInt( 5000000000000000000 ) );
-	ByzantiumBlockReward := big.NewInt(0);
-	ByzantiumBlockReward.Add( count, big.NewInt( 5000000000000000000 ) );
-	ByzantiumBlockReward.Add( count, big.NewInt( 5000000000000000000 ) );
+	FrontierBlockReward    *big.Int = new(big.Int).Mul(big.NewInt(10), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block
+	ByzantiumBlockReward   *big.Int = new(big.Int).Mul(big.NewInt(10), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block upward from Byzantium
 	
+	minerBlockReward               *big.Int = new(big.Int).Mul(big.NewInt(10), big.NewInt(1e+18))
 	masternodeBlockReward          *big.Int = big.NewInt(2e+18) 
 	developmentBlockReward         *big.Int = big.NewInt(1e+18) 
 	maxUncles                               = 2                 // Maximum number of uncles allowed in a single block
