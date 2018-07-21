@@ -28,10 +28,6 @@ import (
 type Config struct {
 	// Debug enabled debugging Interpreter options
 	Debug bool
-	// EnableJit enabled the JIT VM
-	EnableJit bool
-	// ForceJit forces the JIT VM
-	ForceJit bool
 	// Tracer is the op code logger
 	Tracer Tracer
 	// NoRecursion disabled Interpreter call, callcode,
@@ -46,8 +42,8 @@ type Config struct {
 }
 
 // Interpreter is used to run Ethereum based contracts and will utilise the
-// passed evmironment to query external sources for state information.
-// The Interpreter will run the byte code VM or JIT VM based on the passed
+// passed environment to query external sources for state information.
+// The Interpreter will run the byte code VM based on the passed
 // configuration.
 type Interpreter struct {
 	evm      *EVM
@@ -81,7 +77,6 @@ func NewInterpreter(evm *EVM, cfg Config) *Interpreter {
 		evm:      evm,
 		cfg:      cfg,
 		gasTable: evm.ChainConfig().GasTable(evm.BlockNumber),
-		intPool:  newIntPool(),
 	}
 }
 
@@ -108,6 +103,14 @@ func (in *Interpreter) enforceRestrictions(op OpCode, operation operation, stack
 // considered a revert-and-consume-all-gas operation except for
 // errExecutionReverted which means revert-and-keep-gas-left.
 func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err error) {
+	if in.intPool == nil {
+		in.intPool = poolOfIntPools.get()
+		defer func() {
+			poolOfIntPools.put(in.intPool)
+			in.intPool = nil
+		}()
+	}
+
 	// Increment the call depth which is restricted to 1024
 	in.evm.depth++
 	defer func() { in.evm.depth-- }()
@@ -136,6 +139,9 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 		logged  bool   // deferred Tracer should ignore already logged steps
 	)
 	contract.Input = input
+
+	// Reclaim the stack as an int pool when the execution stops
+	defer func() { in.intPool.put(stack.data...) }()
 
 	if in.cfg.Debug {
 		defer func() {
@@ -188,7 +194,7 @@ func (in *Interpreter) Run(contract *Contract, input []byte) (ret []byte, err er
 			}
 		}
 		// consume the gas and return an error if not enough gas is available.
-		// cost is explicitly set so that the capture state defer method cas get the proper cost
+		// cost is explicitly set so that the capture state defer method can get the proper cost
 		cost, err = operation.gasCost(in.gasTable, in.evm, contract, stack, mem, memorySize)
 		if err != nil || !contract.UseGas(cost) {
 			return nil, ErrOutOfGas
