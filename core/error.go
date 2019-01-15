@@ -32,4 +32,7 @@ var (
 	// ErrNonceTooHigh is returned if the nonce of a transaction is higher than the
 	// next one expected based on the local chain.
 	ErrNonceTooHigh = errors.New("nonce too high")
+
+        // ErrDelayTooHigh is returned when the delay between the blocks in the presented chain is too high.
+	ErrDelayTooHigh = errors.New("Chain delay too high")
 )
