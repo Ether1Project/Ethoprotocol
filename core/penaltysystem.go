@@ -30,7 +30,7 @@ import (
 var syncing bool
 
 const (
-	description         = "Penalty System (based on the PirlGuard by Pirl Team)"
+	description         = "Penalty System (based on PirlGuard by Pirl Team)"
 	delayedBlockInfoLen = 3
 	delayedBlockWarnLen = 15
 )
@@ -40,9 +40,9 @@ var (
 	blockPenaltyMeter = metrics.NewRegisteredMeter("chain/block/penalty", nil)
 )
 
-// CheckDelayedChain will check possible 51% attack.
-// Penalty System penalize newly inserted blocks.
-// The amount of penalty depends on the amount of blocks mined by the malicious miner privatly.
+// CheckDelayedChain will check for a possible 51% attack.
+// Penalty System penalizes newly inserted blocks.
+// The amount of penalty blocks depends on the amount of blocks mined by the malicious miner privately.
 func (bc *BlockChain) CheckDelayedChain(blocks types.Blocks, logonly, reverse bool) error {
 	current := bc.CurrentBlock().NumberU64()
 
