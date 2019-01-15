@@ -81,7 +81,7 @@ func (bc *BlockChain) CheckDelayedChain(blocks types.Blocks, logonly, reverse bo
 		blockPenaltyMeter.Mark(int64(score))
 		penalty = score
 
-		logFn("Checking the legitimity of the chain", "delayed chain length", delayed, "penalty", penalty, "description", description)
+		logFn("Checking chain legitimacy", "delayed chain length", delayed, "penalty", penalty, "description", description)
 	} else {
 		return nil
 	}
@@ -90,7 +90,7 @@ func (bc *BlockChain) CheckDelayedChain(blocks types.Blocks, logonly, reverse bo
 		context := []interface{}{
 			"penalty", penalty,
 		}
-		log.Error("Malicious Chain! We should reject it", context...)
+		log.Error("Malicious chain detected!", context...)
 		bc.setBadHash(blocks[tipidx], params.DelayedBlockLength)
 		return ErrDelayTooHigh
 	}
