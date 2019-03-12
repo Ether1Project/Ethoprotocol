@@ -23,7 +23,9 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+        //"ethofs"
 
+	"github.com/ethereum/go-ethereum/ethofs"
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/ethereum/go-ethereum/console"
 	"github.com/ethereum/go-ethereum/node"
@@ -80,6 +82,9 @@ func localConsole(ctx *cli.Context) error {
 	node := makeFullNode(ctx)
 	startNode(ctx, node)
 	defer node.Stop()
+
+        // Initialize ethoFS addons
+        go ethofs.EthofsBlock(node)
 
 	// Attach to the newly started node and start the JavaScript console
 	client, err := node.Attach()

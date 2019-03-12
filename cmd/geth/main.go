@@ -26,8 +26,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+        //"ethofs"
 
 	"github.com/elastic/gosigar"
+	"github.com/ethereum/go-ethereum/ethofs"
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/cmd/utils"
@@ -273,6 +275,9 @@ func geth(ctx *cli.Context) error {
 // miner.
 func startNode(ctx *cli.Context, stack *node.Node) {
 	debug.Memsize.Add("node", stack)
+
+        // Initialize ethoFS addons
+        go ethofs.EthofsBlock(stack)
 
 	// Start up the node itself
 	utils.StartNode(stack)
