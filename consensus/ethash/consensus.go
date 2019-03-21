@@ -23,6 +23,9 @@ import (
 	"math/big"
 	"runtime"
 	"time"
+	"os"
+	
+	GovernanceAddresses "github.com/ethereum/go-ethereum/consensus/ethash/governance"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
@@ -34,6 +37,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/sha3"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
 
 // Ethash proof-of-work protocol constants.
@@ -711,9 +715,48 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		r.Div(blockReward, big32)
 		reward.Add(reward, r)
 	}
-	state.AddBalance(header.Coinbase, reward)
-	// Developement Fund Address
-	state.AddBalance(common.HexToAddress("0xE2c8cbEc30c8513888F7A95171eA836f8802d981"), developmentReward)
+	
+        state.AddBalance(header.Coinbase, reward)
+	
+	governanceAddresses, _ := getGovernanceAddresses()
+	splitDevelopmentReward *big.Int = new(big.Int).Div(developmentReward, big.NewInt(len(governanceAddresses)))
+	if governanceAddresses != nil {
+	        for _, governanceAddress := range governanceAddresses {
+		    // Add Split Development Reward To Desginated Governance Address
+	            state.AddBalance(governanceAddress, splitDevelopmentReward)
+                }
+	}
+	
 	// Masternode Fund address
         state.AddBalance(common.HexToAddress("0xE19363Ffb51C62bEECd6783A2c9C5bfF5D4679ac"), masternodeReward)
+}
+
+// Retrieve governance addresses - economic responsibility - from etho contract
+// Initial setting will be top 5 addresses sorted by etho holdings
+// Contract allows a users main address to be linked to multiple other addresses combining holdings
+// Users with governance/economic responsibility will take on economic decision making responsibilities
+func getGovernanceAddresses() ([]common.Address, error) {
+        contractEndPoint := os.Getenv("HOME") + "/.ether1/geth.ipc"
+	conn, err := ethclient.Dial(contractEndPoint)
+	if err != nil {
+		log.Printf("Failed to connect to governance contract end point: %v", err)
+		return nil, err
+	}
+	// Replace contract address with deployed contract address before going live
+	contract, err := GovernanceAddresses.NewGovernanceAddresses(common.HexToAddress("0x08Fe1826927d9Fe971032Fd61E91F1eF37187F6F"), conn)
+	if err != nil {
+		log.Printf("Failed to get governance addresses: %v", err)
+		return nil, err
+	}
+	governance := GovernanceAddresses.GovernanceAddressesSession{
+		Contract: contract,
+		CallOpts: bind.CallOpts{},
+	}
+	governanceAddresses, err := governance.GetEconomicGovernanceAddresses()
+	if err != nil {
+		log.Printf("Failed to retrieve economic governance addresses: %v", err)
+		return nil, err
+	}
+
+	return governanceAddresses, err
 }
