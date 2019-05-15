@@ -88,10 +88,10 @@ const (
 )
 
 var (
-	DifficultyBoundDivisor = big.NewInt(2048)   // The bound divisor of the difficulty, used in the update calculations.
+	DifficultyBoundDivisor = big.NewInt(2048)          // The bound divisor of the difficulty, used in the update calculations.
 	GenesisDifficulty      = big.NewInt(200000000000) // Difficulty of the Genesis block.
 	MinimumDifficulty      = big.NewInt(200000000000) // The minimum that the difficulty may ever be.
 	DurationLimit          = big.NewInt(13)     // The decision boundary on the blocktime duration used to determine whether difficulty should go up or not.
-        PenaltySystemBlock     = int64(1620000)           // Activatation height of Penalty System.
+  PenaltySystemBlock     = int64(10000)    // Activatation height of Penalty System.
 	DelayedBlockLength     = uint64(20)         // Threshold number of blocks that can be delayed.
 )
