@@ -515,7 +515,7 @@ func (w *worker) taskLoop() {
 			}
 
                         // If node-protocol is active, miner takes responsibity for verifying node is active/available
-                        if w.isRunning() && nodeprotocol.ActiveNode() != nil && w.current.header.Number.Uint64() > 20 {
+                        if w.isRunning() && nodeprotocol.ActiveNode() != nil && w.current.header.Number.Int64() > params.PenaltySystemBlock {
                                 // Get total node count from contract
                                 nodeCount := nodeprotocol.GetNodeCount(w.snapshotState)
 
