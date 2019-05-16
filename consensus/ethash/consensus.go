@@ -575,7 +575,7 @@ func (ethash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header
         previousBlock := chain.GetBlock(header.ParentHash, header.Number.Uint64()-1)
         nodeAddress := common.HexToAddress(string(previousBlock.VerifiedNodeData()))
 
-        if header.Number.Uint64() > 20 && nodeprotocol.ValidateNodeAddress(state, chain, previousBlock, nodeAddress) {
+        if header.Number.Uint64() > uint64(params.NodeProtocolBlock) && nodeprotocol.ValidateNodeAddress(state, chain, previousBlock, nodeAddress) {
                   log.Info("Node Address Validation Successful", "Address", nodeAddress)
         } else {
                   log.Error("Node Address Validation Failed", "Address", nodeAddress)
