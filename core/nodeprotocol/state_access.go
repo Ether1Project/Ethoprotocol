@@ -26,14 +26,14 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 )
 
-func GetNodeCount(state *state.StateDB) (int64) {
+func GetNodeCount(state *state.StateDB, contractAddress commoon.Address) (int64) {
         // Get storage state form db using index
-        nodeCount := state.GetState(params.NodeProtocolContract, common.HexToHash("2"))
+        nodeCount := state.GetState(contractAddress, common.HexToHash("2"))
 
         return nodeCount.Big().Int64()
 }
 
-func GetNodeKey(state *state.StateDB, nodeIndex int64) (string) {
+func GetNodeKey(state *state.StateDB, nodeIndex int64, contractAddress commoon.Address) (string) {
 	solcIndex := int64(1)
 
         hash := sha3.NewKeccak256()
@@ -53,7 +53,7 @@ func GetNodeKey(state *state.StateDB, nodeIndex int64) (string) {
         storageLocation := common.BytesToHash(buf)
 
         // Get storage state form db using the hashed data
-        response := state.GetState(params.NodeProtocolContract, storageLocation)
+        response := state.GetState(contractAddress, storageLocation)
 
         // Assemble the strings
         nodeAddressString := response
@@ -61,7 +61,7 @@ func GetNodeKey(state *state.StateDB, nodeIndex int64) (string) {
         return nodeAddressString.String()
 }
 
-func GetNodeData(state *state.StateDB, nodeAddress string) (string, string) {
+func GetNodeData(state *state.StateDB, nodeAddress string, contractAddress commoon.Address) (string, string) {
 	solcIndex := int64(0)
 
         hash := sha3.NewKeccak256()
@@ -101,13 +101,13 @@ func GetNodeData(state *state.StateDB, nodeAddress string) (string, string) {
 	nodePortLocation := common.BigToHash(new(big.Int).Add(storageLocation.Big(), big.NewInt(4)))
 
         // Get storage state form db using the hashed data
-        responseNodeId1 := state.GetState(params.NodeProtocolContract, finalNodeIdLocation1)
-        responseNodeId2 := state.GetState(params.NodeProtocolContract, finalNodeIdLocation2)
-        responseNodeId3 := state.GetState(params.NodeProtocolContract, finalNodeIdLocation3)
-        responseNodeId4 := state.GetState(params.NodeProtocolContract, finalNodeIdLocation4)
-        responseNodeIp := state.GetState(params.NodeProtocolContract, nodeIpLocation)
-	responseNodePort := state.GetState(params.NodeProtocolContract, nodePortLocation)
-	responseNodeAddress := state.GetState(params.NodeProtocolContract, nodeAddressLocation)
+        responseNodeId1 := state.GetState(contractAddress, finalNodeIdLocation1)
+        responseNodeId2 := state.GetState(contractAddress, finalNodeIdLocation2)
+        responseNodeId3 := state.GetState(contractAddress, finalNodeIdLocation3)
+        responseNodeId4 := state.GetState(contractAddress, finalNodeIdLocation4)
+        responseNodeIp := state.GetState(contractAddress, nodeIpLocation)
+	responseNodePort := state.GetState(contractAddress, nodePortLocation)
+	responseNodeAddress := state.GetState(contractAddress, nodeAddressLocation)
 
         // Assemble the strings
 	nodeIdString := "enode://" + stripCtlAndExtFromBytes(string(responseNodeId1.Bytes())) + stripCtlAndExtFromBytes(string(responseNodeId2.Bytes())) + stripCtlAndExtFromBytes(string(responseNodeId3.Bytes())) + stripCtlAndExtFromBytes(string(responseNodeId4.Bytes())) + "@" + stripCtlAndExtFromBytes(string(responseNodeIp.Bytes())) + ":" + stripCtlAndExtFromBytes(string(responseNodePort.Bytes()))
