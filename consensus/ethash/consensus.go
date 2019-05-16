@@ -744,12 +744,17 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	// Developement Fund Address
 	state.AddBalance(common.HexToAddress("0xE2c8cbEc30c8513888F7A95171eA836f8802d981"), developmentReward)
 	
-        // Iterate over node types to disburse node rewards and calculated remainders
-        for i := 1; i < len(params.NodeTypes); i++ {
-                // Validated Node Address
-                state.AddBalance(nodeAddress[i], masternodeReward) // Temp reward - permanent reward calculation still needed
-                // Node Fund Remainder
-                state.AddBalance(nodeAddress[i], nodeRemainder[i])
-                state.SubBalance(params.NodeTypes[i].RemainderAddress, nodeRemainder[i])
-	}
+        if(header.Number.Int64() > params.NodeProtocolBlock) {
+                // Iterate over node types to disburse node rewards and calculated remainders
+                for i := 1; i < len(params.NodeTypes); i++ {
+                        // Validated Node Address
+                        state.AddBalance(nodeAddress[i], masternodeReward) // Temp reward - permanent reward calculation still needed
+                        // Node Fund Remainder
+                        state.AddBalance(nodeAddress[i], nodeRemainder[i])
+                        state.SubBalance(params.NodeTypes[i].RemainderAddress, nodeRemainder[i])
+	        }
+        } else {
+                // Masternode Fund Address
+ 	        state.AddBalance(common.HexToAddress("0xE19363Ffb51C62bEECd6783A2c9C5bfF5D4679ac"), masternodeReward)
+        }
 }
