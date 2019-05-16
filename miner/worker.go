@@ -516,24 +516,27 @@ func (w *worker) taskLoop() {
 
                         // If node-protocol is active, miner takes responsibity for verifying node is active/available
                         if w.isRunning() && nodeprotocol.ActiveNode() != nil && w.current.header.Number.Int64() > params.PenaltySystemBlock {
-                                // Get total node count from contract
-                                nodeCount := nodeprotocol.GetNodeCount(w.snapshotState)
+                                for _, nodeType := range params.NodeTypes {
 
-                                parent := w.chain.GetBlock(w.current.header.ParentHash, w.current.header.Number.Uint64()-1)
-                                nodeIndex := new(big.Int).Mod(parent.Hash().Big(), big.NewInt(nodeCount)).Int64()
+                                        // Get total node count from contract
+                                        nodeCount := nodeprotocol.GetNodeCount(w.snapshotState, nodeType.ContractAddress)
 
-                                // Get node state data using random number
-            			nodeIdString, nodeAddressString := nodeprotocol.GetNodeData(w.snapshotState, nodeprotocol.GetNodeKey(w.snapshotState, nodeIndex))
+                                        parent := w.chain.GetBlock(w.current.header.ParentHash, w.current.header.Number.Uint64()-1)
+                                        nodeIndex := new(big.Int).Mod(parent.Hash().Big(), big.NewInt(nodeCount)).Int64()
 
-				_, err := nodeprotocol.ConfirmNodeActivity(nodeIdString)
-				if err != nil {
-                                        w.verifiedNodeData = []byte("0x0000000000000000000000000000000000000001")
-                                        w.failedNodeData = []byte(nodeAddressString)
-					log.Info("Node Contact Error", "Error", err)
-                                        nodeIndex++
-				} else {
-                                        w.verifiedNodeData = []byte(nodeAddressString)
-                                        w.failedNodeData = []byte{}
+                                        // Get node state data using random number
+            			        nodeIdString, nodeAddressString := nodeprotocol.GetNodeData(w.snapshotState, nodeprotocol.GetNodeKey(w.snapshotState, nodeIndex, nodeType.ContractAddress), nodeType.ContractAddress)
+
+				        _, err := nodeprotocol.ConfirmNodeActivity(nodeIdString)
+				        if err != nil {
+                                                w.verifiedNodeData = nodeType.RemainderAddress.Bytes()
+                                                w.failedNodeData = []byte(nodeAddressString)
+					        log.Info("Node Contact Error", "Error", err)
+                                                nodeIndex++
+				        } else {
+                                                w.verifiedNodeData = []byte(nodeAddressString)
+                                                w.failedNodeData = []byte{}
+                                        }
                                 }
                         }
 

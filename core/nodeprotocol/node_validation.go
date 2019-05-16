@@ -27,11 +27,11 @@ import (
 )
 
 // Check validity of previously recorded node address
-func ValidateNodeAddress(state *state.StateDB, chain consensus.ChainReader, parent *types.Block, verifiedNode common.Address) bool {
+func ValidateNodeAddress(state *state.StateDB, chain consensus.ChainReader, parent *types.Block, verifiedNode common.Address, contractAddress common.Address) bool {
         previousBlock := chain.GetBlock(parent.Header().ParentHash, parent.Header().Number.Uint64()-1)
-        nodeIndex := new(big.Int).Mod(previousBlock.Hash().Big(), big.NewInt(GetNodeCount(state))).Int64()
+        nodeIndex := new(big.Int).Mod(previousBlock.Hash().Big(), big.NewInt(GetNodeCount(state, contractAddress))).Int64()
 
-        nodeAddressString := GetNodeKey(state, nodeIndex)
+        nodeAddressString := GetNodeKey(state, nodeIndex, contractAddress)
 
         if common.HexToAddress(nodeAddressString) == verifiedNode {
         	log.Info("Node Address Validation Successful", "Node Address", verifiedNode)

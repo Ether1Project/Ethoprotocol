@@ -26,21 +26,21 @@ import (
 // Main node type configuration for node-protocol
 var NodeTypes = []NodeType { 
     NodeType {
-        Name: 'Service Node', 
+        Name: "Service Node",
         RequiredCollateral: new(big.Int).Mul(big.NewInt(5000), big.NewInt(1e+18)), 
         BlockReward: big.NewInt(0), //Initialize to 0 since we are using monetary policy config during consensus 
         RemainderAddress: common.HexToAddress("0x0000000000000000000000000000000000000001"),
 	ContractAddress: common.HexToAddress("0x2583649fa09d6dafbdd845dbf05492ecf225627d"),
     },
     NodeType {
-        Name: 'Masternode', 
+        Name: "Masternode", 
         RequiredCollateral: new(big.Int).Mul(big.NewInt(15000), big.NewInt(1e+18)), 
         BlockReward: big.NewInt(0), //Initialize to 0 since we are using monetary policy config during consensus 
         RemainderAddress: common.HexToAddress("0x0000000000000000000000000000000000000002"),
 	ContractAddress: common.HexToAddress("0x2583649fa09d6dafbdd845dbf05492ecf225627d"),
     },
     NodeType {
-        Name: 'Gateway Node', 
+        Name: "Gateway Node", 
         RequiredCollateral: new(big.Int).Mul(big.NewInt(30000), big.NewInt(1e+18)), 
         BlockReward: big.NewInt(0), //Initialize to 0 since we are using monetary policy config during consensus 
         RemainderAddress: common.HexToAddress("0x0000000000000000000000000000000000000003"),

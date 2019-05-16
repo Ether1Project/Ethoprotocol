@@ -23,6 +23,7 @@ import (
 	"math/big"
 	"runtime"
 	"time"
+	"strings"
 
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
@@ -583,17 +584,17 @@ func (ethash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header
 		
 		for i := 1; i < len(nodeAddresses); i++ {
 			
-			contractAddress := params.NodeTypes[i-1]
-			if nodeprotocol.ValidateNodeAddress(state, chain, previousBlock, nodeAddresses[i], contractAddress) {
+			contractAddress := params.NodeTypes[i-1].ContractAddress
+			if nodeprotocol.ValidateNodeAddress(state, chain, previousBlock, common.HexToAddress(nodeAddresses[i]), contractAddress) {
 				log.Info("Node Address Validation Successful", "Address", nodeAddresses[i])
-				nodeAddress = append(nodeAddress, nodeAddresses[i])
+				nodeAddress = append(nodeAddress, common.HexToAddress(nodeAddresses[i]))
 			} else {
 				log.Error("Node Address Validation Failed", "Address", nodeAddresses[i])
                                 nodeAddress = append(nodeAddress, params.NodeTypes[i-1].RemainderAddress)
 			}
 			
 			// Get reward remainder from previous bad reward validations
-			nodeRemainder := nodeprotocol.GetNodeRemainder(state, nodeprotocol.GetNodeCount(state, contractAddress), params.NodeTypes[i-1].RemainderAddress)
+			nodeRemainder = append(nodeRemainder, nodeprotocol.GetNodeRemainder(state, nodeprotocol.GetNodeCount(state, contractAddress), params.NodeTypes[i-1].RemainderAddress))
                 }             
         }       
 

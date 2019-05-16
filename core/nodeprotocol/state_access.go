@@ -23,17 +23,16 @@ import (
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/crypto/sha3"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/params"
 )
 
-func GetNodeCount(state *state.StateDB, contractAddress commoon.Address) (int64) {
+func GetNodeCount(state *state.StateDB, contractAddress common.Address) (int64) {
         // Get storage state form db using index
         nodeCount := state.GetState(contractAddress, common.HexToHash("2"))
 
         return nodeCount.Big().Int64()
 }
 
-func GetNodeKey(state *state.StateDB, nodeIndex int64, contractAddress commoon.Address) (string) {
+func GetNodeKey(state *state.StateDB, nodeIndex int64, contractAddress common.Address) (string) {
 	solcIndex := int64(1)
 
         hash := sha3.NewKeccak256()
@@ -61,7 +60,7 @@ func GetNodeKey(state *state.StateDB, nodeIndex int64, contractAddress commoon.A
         return nodeAddressString.String()
 }
 
-func GetNodeData(state *state.StateDB, nodeAddress string, contractAddress commoon.Address) (string, string) {
+func GetNodeData(state *state.StateDB, nodeAddress string, contractAddress common.Address) (string, string) {
 	solcIndex := int64(0)
 
         hash := sha3.NewKeccak256()
