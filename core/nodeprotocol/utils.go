@@ -38,9 +38,9 @@ func stripCtlAndExtFromBytes(str string) string {
 }
 
 // Calculate and return node remainder balance payment share
-func GetNodeRemainder(state *state.StateDB, nodeCount int64) *big.Int {
+func GetNodeRemainder(state *state.StateDB, nodeCount int64, remainderAddress common.Address) *big.Int {
 
-        remainderBalance := state.GetBalance(common.HexToAddress("0x0000000000000000000000000000000000000001"))
+        remainderBalance := state.GetBalance(remainderAddress)
 
         if remainderBalance.Cmp(big.NewInt(0)) > 0 {
 
