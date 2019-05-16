@@ -182,6 +182,12 @@ var AppHelpFlagGroups = []flagGroup{
 			utils.NodeKeyHexFlag,
 		},
 	},
+        {
+		Name: "NODE",
+		Flags: []cli.Flag{
+			utils.NodeFlag,
+		},
+	},
 	{
 		Name: "MINER",
 		Flags: []cli.Flag{

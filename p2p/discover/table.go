@@ -237,6 +237,16 @@ func (tab *Table) Resolve(n *enode.Node) *enode.Node {
 	return nil
 }
 
+// ResolveNode finds specific node in the network
+func (tab *Table) ResolveNode(n *enode.Node) *enode.Node {
+	result, err := tab.net.findnode(n.ID(), &net.UDPAddr{IP: n.IP(), Port: n.UDP()}, encodePubkey(n.Pubkey()))
+        if err != nil || len(result) == 0 {
+            log.Info("Node Could Not Be Found", "ID", n.ID())
+            return nil
+        }
+	return n
+}
+
 // LookupRandom finds random nodes in the network.
 func (tab *Table) LookupRandom() []*enode.Node {
 	var target encPubkey

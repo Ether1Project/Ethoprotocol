@@ -113,6 +113,11 @@ func NewApp(gitCommit, usage string) *cli.App {
 // are the same for all commands.
 
 var (
+        // Node Settings
+	NodeFlag = cli.BoolFlag{
+		Name:  "node",
+		Usage: "Enable Node-Protocol System",
+	}
 	// General settings
 	DataDirFlag = DirectoryFlag{
 		Name:  "datadir",

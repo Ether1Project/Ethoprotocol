@@ -23,14 +23,13 @@ import (
 const (
 	VersionMajor = 1          // Major version component of the current release
 	VersionMinor = 1          // Minor version component of the current release
-	VersionPatch = 7          // Patch version component of the current release
-	VersionPatchMinor = 1          // Patch version component of the current releas
-	VersionMeta  = "Ether1-Security-Update" // Version metadata to append to the version string
+	VersionPatch = 9          // Patch version component of the current release
+	VersionMeta  = "Ether1-Node-Protocol" // Version metadata to append to the version string
 )
 
 // Version holds the textual version string.
 var Version = func() string {
-	return fmt.Sprintf("%d.%d.%d.%d", VersionMajor, VersionMinor, VersionPatch, VersionPatchMinor)
+	return fmt.Sprintf("%d.%d.%d", VersionMajor, VersionMinor, VersionPatch)
 }()
 
 // VersionWithMeta holds the textual version string including the metadata.

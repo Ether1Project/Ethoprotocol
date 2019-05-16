@@ -87,6 +87,7 @@ type dialstate struct {
 type discoverTable interface {
 	Close()
 	Resolve(*enode.Node) *enode.Node
+        ResolveNode(*enode.Node) *enode.Node
 	LookupRandom() []*enode.Node
 	ReadRandomNodes([]*enode.Node) int
 }
@@ -337,6 +338,17 @@ func (t *dialTask) resolve(srv *Server) bool {
 	t.resolveDelay = initialResolveDelay
 	t.dest = resolved
 	log.Debug("Resolved node", "id", t.dest.ID, "addr", &net.TCPAddr{IP: t.dest.IP(), Port: t.dest.TCP()})
+	return true
+}
+
+// Resolve is used to verify node is available and active on the network
+func Resolve(srv *Server, destinationNode *enode.Node) bool {
+	resolved := srv.ntab.ResolveNode(destinationNode)
+	if resolved == nil {
+        	log.Info("Resolving Node Failed", "ID", destinationNode.ID)
+	        return false
+	}
+        log.Info("Resolved Node Successfully", "ID", destinationNode.ID)
 	return true
 }
 

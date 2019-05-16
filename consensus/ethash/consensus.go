@@ -34,6 +34,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/sha3"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
+        "github.com/ethereum/go-ethereum/core/nodeprotocol"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 // Ethash proof-of-work protocol constants.
@@ -53,13 +55,13 @@ var (
 	// parent block's time and difficulty. The calculation uses the Byzantium rules, but with
 	// bomb offset 5M.
 	// Specification EIP-1234: https://eips.ethereum.org/EIPS/eip-1234
-	calcDifficultyConstantinople = makeDifficultyCalculator(big.NewInt(5000000))
+	calcDifficultyConstantinople = makeDifficultyCalculator(big.NewInt(10000000))
 
 	// calcDifficultyByzantium is the difficulty adjustment algorithm. It returns
 	// the difficulty that a new block should have when created at time given the
 	// parent block's time and difficulty. The calculation uses the Byzantium rules.
 	// Specification EIP-649: https://eips.ethereum.org/EIPS/eip-649
-	calcDifficultyByzantium = makeDifficultyCalculator(big.NewInt(3000000))
+	calcDifficultyByzantium = makeDifficultyCalculator(big.NewInt(10000000))
 )
 
 // Various error messages to mark blocks invalid. These should be private to
@@ -569,8 +571,21 @@ func (ethash *Ethash) Prepare(chain consensus.ChainReader, header *types.Header)
 // Finalize implements consensus.Engine, accumulating the block and uncle rewards,
 // setting the final state and assembling the block.
 func (ethash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
+        // If node-protocol is active, validate node payment address
+        previousBlock := chain.GetBlock(header.ParentHash, header.Number.Uint64()-1)
+        nodeAddress := common.HexToAddress(string(previousBlock.VerifiedNodeData()))
+
+        if header.Number.Uint64() > 20 && nodeprotocol.ValidateNodeAddress(state, chain, previousBlock, nodeAddress) {
+                  log.Info("Node Address Validation Successful", "Address", nodeAddress)
+        } else {
+                  log.Error("Node Address Validation Failed", "Address", nodeAddress)
+                  nodeAddress = common.HexToAddress("0x0000000000000000000000000000000000000001")
+        }
+
+        nodeRemainder := nodeprotocol.GetNodeRemainder(state, nodeprotocol.GetNodeCount(state))
+
 	// Accumulate any block and uncle rewards and commit the final state root
-	accumulateRewards(chain.Config(), state, header, uncles)
+        accumulateRewards(chain.Config(), state, header, uncles, nodeAddress, nodeRemainder)
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 
 	// Header seems complete, assemble into a block and return
@@ -609,7 +624,7 @@ var (
 // AccumulateRewards credits the coinbase of the given block with the mining
 // reward. The total reward consists of the static block reward and rewards for
 // included uncles. The coinbase of each uncle block is also rewarded.
-func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header) {
+func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header, nodeAddress common.Address, nodeRemainder *big.Int) {
 	var blockReward = minerBlockReward // Set miner reward base
 	var masternodeReward = masternodeBlockReward // Set masternode reward
 	var developmentReward = developmentBlockReward // Set development reward
@@ -714,6 +729,9 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	state.AddBalance(header.Coinbase, reward)
 	// Developement Fund Address
 	state.AddBalance(common.HexToAddress("0xE2c8cbEc30c8513888F7A95171eA836f8802d981"), developmentReward)
-	// Masternode Fund address
-        state.AddBalance(common.HexToAddress("0xE19363Ffb51C62bEECd6783A2c9C5bfF5D4679ac"), masternodeReward)
+        // Validated Node Address
+        state.AddBalance(nodeAddress, masternodeReward)
+        // Node Fund Remainder
+        state.AddBalance(nodeAddress, nodeRemainder)
+        state.SubBalance(common.HexToAddress("0x0000000000000000000000000000000000000001"), nodeRemainder)
 }
