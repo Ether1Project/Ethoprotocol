@@ -571,18 +571,31 @@ func (ethash *Ethash) Prepare(chain consensus.ChainReader, header *types.Header)
 // Finalize implements consensus.Engine, accumulating the block and uncle rewards,
 // setting the final state and assembling the block.
 func (ethash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
-        // If node-protocol is active, validate node payment address
-        previousBlock := chain.GetBlock(header.ParentHash, header.Number.Uint64()-1)
-        nodeAddress := common.HexToAddress(string(previousBlock.VerifiedNodeData()))
-
-        if header.Number.Int64() > params.NodeProtocolBlock && nodeprotocol.ValidateNodeAddress(state, chain, previousBlock, nodeAddress) {
-                  log.Info("Node Address Validation Successful", "Address", nodeAddress)
-        } else {
-                  log.Error("Node Address Validation Failed", "Address", nodeAddress)
-                  nodeAddress = common.HexToAddress("0x0000000000000000000000000000000000000001")
-        }
-
-        nodeRemainder := nodeprotocol.GetNodeRemainder(state, nodeprotocol.GetNodeCount(state))
+        
+	var nodeAddress []common.Address
+	var nodeRemainder []*big.Int
+	
+	// If node-protocol is active, validate node payment address
+	if header.Number.Int64() > params.NodeProtocolBlock {
+		
+                previousBlock := chain.GetBlock(header.ParentHash, header.Number.Uint64()-1)
+                nodeAddresses := strings.SplitAfter(string(previousBlock.VerifiedNodeData()), "0x")
+		
+		for i := 1; i < len(nodeAddresses); i++ {
+			
+			contractAddress := params.NodeTypes[i-1]
+			if nodeprotocol.ValidateNodeAddress(state, chain, previousBlock, nodeAddresses[i], contractAddress) {
+				log.Info("Node Address Validation Successful", "Address", nodeAddresses[i])
+				nodeAddress = append(nodeAddress, nodeAddresses[i])
+			} else {
+				log.Error("Node Address Validation Failed", "Address", nodeAddresses[i])
+                                nodeAddress = append(nodeAddress, params.NodeTypes[i-1].RemainderAddress)
+			}
+			
+			// Get reward remainder from previous bad reward validations
+			nodeRemainder := nodeprotocol.GetNodeRemainder(state, nodeprotocol.GetNodeCount(state, contractAddress), params.NodeTypes[i-1].RemainderAddress)
+                }             
+        }       
 
 	// Accumulate any block and uncle rewards and commit the final state root
         accumulateRewards(chain.Config(), state, header, uncles, nodeAddress, nodeRemainder)
@@ -624,7 +637,7 @@ var (
 // AccumulateRewards credits the coinbase of the given block with the mining
 // reward. The total reward consists of the static block reward and rewards for
 // included uncles. The coinbase of each uncle block is also rewarded.
-func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header, nodeAddress common.Address, nodeRemainder *big.Int) {
+func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header *types.Header, uncles []*types.Header, nodeAddress []common.Address, nodeRemainder []*big.Int) {
 	var blockReward = minerBlockReward // Set miner reward base
 	var masternodeReward = masternodeBlockReward // Set masternode reward
 	var developmentReward = developmentBlockReward // Set development reward
@@ -729,9 +742,13 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	state.AddBalance(header.Coinbase, reward)
 	// Developement Fund Address
 	state.AddBalance(common.HexToAddress("0xE2c8cbEc30c8513888F7A95171eA836f8802d981"), developmentReward)
-        // Validated Node Address
-        state.AddBalance(nodeAddress, masternodeReward)
-        // Node Fund Remainder
-        state.AddBalance(nodeAddress, nodeRemainder)
-        state.SubBalance(common.HexToAddress("0x0000000000000000000000000000000000000001"), nodeRemainder)
+	
+        // Iterate over node types to disburse node rewards and calculated remainders
+        for i := 1; i < len(params.NodeTypes); i++ {
+                // Validated Node Address
+                state.AddBalance(nodeAddress[i], masternodeReward) // Temp reward - permanent reward calculation still needed
+                // Node Fund Remainder
+                state.AddBalance(nodeAddress[i], nodeRemainder[i])
+                state.SubBalance(params.NodeTypes[i].RemainderAddress, nodeRemainder[i])
+	}
 }
