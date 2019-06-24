@@ -60,6 +60,8 @@ var (
 	// parent block's time and difficulty. The calculation uses the Byzantium rules.
 	// Specification EIP-649: https://eips.ethereum.org/EIPS/eip-649
 	calcDifficultyByzantium = makeDifficultyCalculator(big.NewInt(3000000))
+
+	calcDifficultyRobinHood = makeDifficultyCalculator(big.NewInt(100000000))
 )
 
 // Various error messages to mark blocks invalid. These should be private to
@@ -319,6 +321,10 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 	switch {
 	case config.IsConstantinople(next):
 		return calcDifficultyConstantinople(time, parent)
+	case config.IsRobinHood(next):
+                // Change minimum difficulty
+                params.MinimumDifficulty = big.NewInt(131072)
+		return calcDifficultyRobinHood(time, parent)
 	case config.IsByzantium(next):
 		return calcDifficultyByzantium(time, parent)
 	case config.IsHomestead(next):
