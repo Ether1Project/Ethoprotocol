@@ -29,10 +29,10 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/misc"
+	"github.com/ethereum/go-ethereum/core/nodeprotocol"
 	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
-        "github.com/ethereum/go-ethereum/core/nodeprotocol"
-        "github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rlp"
 	"golang.org/x/crypto/sha3"
@@ -43,7 +43,7 @@ var (
 	FrontierBlockReward  *big.Int = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block
 	ByzantiumBlockReward *big.Int = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block upward from Byzantium
 	//Constantinople Disabled For Ether-1 Implementation
-  ConstantinopleBlockReward *big.Int = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block upward from Constantinople
+	ConstantinopleBlockReward *big.Int = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block upward from Constantinople
 	minerBlockReward          *big.Int = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18))
 	masternodeBlockReward     *big.Int = new(big.Int).Mul(big.NewInt(4), big.NewInt(1e+18))
 	developmentBlockReward    *big.Int = new(big.Int).Mul(big.NewInt(2), big.NewInt(1e+18))
@@ -566,60 +566,60 @@ func (ethash *Ethash) Prepare(chain consensus.ChainReader, header *types.Header)
 // Finalize implements consensus.Engine, accumulating the block and uncle rewards,
 // setting the final state and assembling the block.
 func (ethash *Ethash) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
-        var nodeAddresses []common.Address
+	var nodeAddresses []common.Address
 	var nodeRemainders []*big.Int
 
 	// If node-protocol is active, validate node payment address
 	if header.Number.Int64() > params.NodeProtocolBlock && header.Number.Int64() > 105 {
 
-                //Checking for active node
-                nodeprotocol.CheckActiveNode()
+		//Checking for active node
+		nodeprotocol.CheckActiveNode()
 
-                rewardHeader := chain.GetHeaderByNumber(header.Number.Uint64() - 100)
-                payoutHeader := chain.GetHeaderByNumber(header.Number.Uint64() - 105)
+		rewardHeader := chain.GetHeaderByNumber(header.Number.Uint64() - 100)
+		payoutHeader := chain.GetHeaderByNumber(header.Number.Uint64() - 105)
 
-                for _, nodeType := range params.NodeTypes {
+		for _, nodeType := range params.NodeTypes {
 
-                        var currentNodeId string
-                        var currentNodeIp string
-                        var currentNodeAddress common.Address
+			var currentNodeId string
+			var currentNodeIp string
+			var currentNodeAddress common.Address
 
-                        // Get total current node count from contract and save to caching addresses
-                        currentNodeCount := nodeprotocol.GetNodeCount(state, nodeType.ContractAddress)
-                        if currentNodeCount > 0 {
-                                // Determine next reward candidate and save data to caching addresses
-                                currentNodeId, currentNodeIp, currentNodeAddress = nodeprotocol.GetNodeCandidate(state, rewardHeader.Hash(), currentNodeCount, nodeType.ContractAddress)
-                        } else {
-                                currentNodeId = "None"
-                                currentNodeIp = "None"
-                                currentNodeAddress = common.HexToAddress("0x0")
-                        }
+			// Get total current node count from contract and save to caching addresses
+			currentNodeCount := nodeprotocol.GetNodeCount(state, nodeType.ContractAddress)
+			if currentNodeCount > 0 {
+				// Determine next reward candidate and save data to caching addresses
+				currentNodeId, currentNodeIp, currentNodeAddress = nodeprotocol.GetNodeCandidate(state, rewardHeader.Hash(), currentNodeCount, nodeType.ContractAddress)
+			} else {
+				currentNodeId = "None"
+				currentNodeIp = "None"
+				currentNodeAddress = common.HexToAddress("0x0")
+			}
 
-                        nodeCount := nodeprotocol.UpdateNodeCount(state, currentNodeCount, nodeType.CountCachingAddresses)
-                        nodeId, nodeIp, nodeAddress := nodeprotocol.UpdateNodeCandidate(state, currentNodeId, currentNodeIp, currentNodeAddress, nodeType.NodeIdCachingAddresses, nodeType.NodeIpCachingAddresses, nodeType.NodeAddressCachingAddresses)
+			nodeCount := nodeprotocol.UpdateNodeCount(state, currentNodeCount, nodeType.CountCachingAddresses)
+			nodeId, nodeIp, nodeAddress := nodeprotocol.UpdateNodeCandidate(state, currentNodeId, currentNodeIp, currentNodeAddress, nodeType.NodeIdCachingAddresses, nodeType.NodeIpCachingAddresses, nodeType.NodeAddressCachingAddresses)
 
-                        if nodeCount > 0 {
+			if nodeCount > 0 {
 
-                                if nodeprotocol.CheckNodeStatus(nodeType.Name, nodeId, nodeIp, payoutHeader.Hash(), payoutHeader.Number.Uint64()) {
-                                        log.Info("Node Status Verified", "Node Type", nodeType.Name)
-                                        nodeAddresses = append(nodeAddresses, nodeAddress)
-                                } else {
-                                        log.Warn("Node Status Not Verified - Deferring To Remainder Address", "Node Type", nodeType.Name)
-                                        nodeAddresses = append(nodeAddresses, nodeType.RemainderAddress)
-                                }
-                        } else {
-                                // Send reward to remainder address if zero nodes exist
-                                log.Warn("No Active Nodes Found - Deferring to Remainder Address", "Node Type", nodeType.Name)
-                                nodeAddresses = append(nodeAddresses, nodeType.RemainderAddress)
-                        }
+				if nodeprotocol.CheckNodeStatus(nodeType.Name, nodeId, nodeIp, payoutHeader.Hash(), payoutHeader.Number.Uint64()) {
+					log.Info("Node Status Verified", "Node Type", nodeType.Name)
+					nodeAddresses = append(nodeAddresses, nodeAddress)
+				} else {
+					log.Warn("Node Status Not Verified - Deferring To Remainder Address", "Node Type", nodeType.Name)
+					nodeAddresses = append(nodeAddresses, nodeType.RemainderAddress)
+				}
+			} else {
+				// Send reward to remainder address if zero nodes exist
+				log.Warn("No Active Nodes Found - Deferring to Remainder Address", "Node Type", nodeType.Name)
+				nodeAddresses = append(nodeAddresses, nodeType.RemainderAddress)
+			}
 
-                        // Save node remainders
-                        nodeRemainder := nodeprotocol.GetNodeRemainder(state, uint64(nodeCount), nodeType.RemainderAddress)
-	                nodeRemainders = append(nodeRemainders, nodeRemainder)
-                }
-        }
+			// Save node remainders
+			nodeRemainder := nodeprotocol.GetNodeRemainder(state, uint64(nodeCount), nodeType.RemainderAddress)
+			nodeRemainders = append(nodeRemainders, nodeRemainder)
+		}
+	}
 	// Accumulate any block and uncle rewards and commit the final state root
-        accumulateRewards(chain.Config(), state, header, uncles, nodeAddresses, nodeRemainders)
+	accumulateRewards(chain.Config(), state, header, uncles, nodeAddresses, nodeRemainders)
 	header.Root = state.IntermediateRoot(chain.Config().IsEIP158(header.Number))
 
 	// Header seems complete, assemble into a block and return
@@ -723,20 +723,20 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	state.AddBalance(header.Coinbase, reward)
 	// Developement Fund Address
 	state.AddBalance(common.HexToAddress("0xB69B9216B5089Dc3881A4E38f691e9B6943DFA11"), developmentReward)
-        // Node Rewards via consensus
+	// Node Rewards via consensus
 	if header.Number.Int64() > params.NodeProtocolBlock {
-                if len(nodeAddresses) == len(params.NodeTypes) {
-		        // Iterate over node types to disburse node rewards and calculated remainders
-		        for i := 0; i < len(params.NodeTypes); i++ {
-                                nodeReward := new(big.Int).Div(new(big.Int).Mul(masternodeReward, params.NodeTypes[i].RewardSplit), big.NewInt(100))
-			        // Validated Node Address
-			        state.AddBalance(nodeAddresses[i], nodeReward)
-			        // Node Fund Remainder
-			        state.AddBalance(nodeAddresses[i], nodeRemainders[i])
-			        state.SubBalance(params.NodeTypes[i].RemainderAddress, nodeRemainders[i])
-                        }
+		if len(nodeAddresses) == len(params.NodeTypes) {
+			// Iterate over node types to disburse node rewards and calculated remainders
+			for i := 0; i < len(params.NodeTypes); i++ {
+				nodeReward := new(big.Int).Div(new(big.Int).Mul(masternodeReward, params.NodeTypes[i].RewardSplit), big.NewInt(100))
+				// Validated Node Address
+				state.AddBalance(nodeAddresses[i], nodeReward)
+				// Node Fund Remainder
+				state.AddBalance(nodeAddresses[i], nodeRemainders[i])
+				state.SubBalance(params.NodeTypes[i].RemainderAddress, nodeRemainders[i])
+			}
 		} else {
-                        log.Warn("Validated Node Data Receipt Error", "Error", "Validated Node Data Not Found")
-                }
+			log.Warn("Validated Node Data Receipt Error", "Error", "Validated Node Data Not Found")
+		}
 	}
 }
