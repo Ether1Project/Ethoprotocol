@@ -303,7 +303,7 @@ func GenesisBlockForTesting(db ethdb.Database, addr common.Address, balance *big
 	return g.MustCommit(db)
 }
 
-// DefaultGenesisBlock returns the Ether-1 main net genesis block.
+// DefaultGenesisBlock returns the Xerom main net genesis block.
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:     params.MainnetChainConfig,
@@ -311,7 +311,7 @@ func DefaultGenesisBlock() *Genesis {
 		ExtraData:  hexutil.MustDecode("0x646563656e7472616c697a6564206279206e6174757265"),
 		GasLimit:   3141592,
 		Difficulty: big.NewInt(5000),
-    Alloc:      nil,
+                Alloc: decodePrealloc(mainnetAllocData),
 	}
 }
 

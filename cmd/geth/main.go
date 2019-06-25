@@ -38,6 +38,7 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
 	"github.com/ethereum/go-ethereum/node"
+        "github.com/ethereum/go-ethereum/core/nodeprotocol"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -113,6 +114,7 @@ var (
 		utils.MinerNoVerfiyFlag,
 		utils.NATFlag,
 		utils.NoDiscoverFlag,
+                utils.NodeFlag,
 		utils.DiscoveryV5Flag,
 		utils.NetrestrictFlag,
 		utils.NodeKeyFileFlag,
@@ -357,4 +359,10 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 			utils.Fatalf("Failed to start mining: %v", err)
 		}
 	}
+        if ctx.GlobalIsSet(utils.NodeFlag.Name) {
+	        nodeprotocol.SetProtocolFlag(true)
+	} else {
+	        nodeprotocol.SetProtocolFlag(false)
+        }
+	nodeprotocol.SetActiveNode(stack)
 }

@@ -24,13 +24,12 @@ const (
 	VersionMajor = 1          // Major version component of the current release
 	VersionMinor = 0          // Minor version component of the current release
 	VersionPatch = 0          // Patch version component of the current release
-	VersionPatchMinor = 0          // Patch version component of the current releas
 	VersionMeta  = "Xerom Birth" // Version metadata to append to the version string
 )
 
 // Version holds the textual version string.
 var Version = func() string {
-	return fmt.Sprintf("%d.%d.%d.%d", VersionMajor, VersionMinor, VersionPatch, VersionPatchMinor)
+	return fmt.Sprintf("%d.%d.%d", VersionMajor, VersionMinor, VersionPatch)
 }()
 
 // VersionWithMeta holds the textual version string including the metadata.

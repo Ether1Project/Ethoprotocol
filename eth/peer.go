@@ -26,6 +26,8 @@ import (
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+        "github.com/ethereum/go-ethereum/core/nodeprotocol"
+	"github.com/ethereum/go-ethereum/core/nodeprotocolmessaging"
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -39,6 +41,9 @@ var (
 const (
 	maxKnownTxs    = 32768 // Maximum transactions hashes to keep in the known list (prevent DOS)
 	maxKnownBlocks = 1024  // Maximum block hashes to keep in the known list (prevent DOS)
+        maxKnownNodeData = 1024  // Maximum node data to keep in known list (prevent DOS)
+        maxKnownNodeDataMessages = 1024  // Maximum node data message records to keep in known list (prevent DOS)
+        maxKnownSendNodePeerVerificationMessages = 1024  // Maximum node data message records to keep in known list (prevent DOS)
 
 	// maxQueuedTxs is the maximum number of transaction lists to queue up before
 	// dropping broadcasts. This is a sensitive number as a transaction list might
@@ -87,6 +92,9 @@ type peer struct {
 
 	knownTxs    mapset.Set                // Set of transaction hashes known to be known by this peer
 	knownBlocks mapset.Set                // Set of block hashes known to be known by this peer
+        knownNodeData                        mapset.Set
+        knownNodeDataMessage                 mapset.Set
+        knownSendNodePeerVerificationMessage mapset.Set
 	queuedTxs   chan []*types.Transaction // Queue of transactions to broadcast to the peer
 	queuedProps chan *propEvent           // Queue of blocks to broadcast to the peer
 	queuedAnns  chan *types.Block         // Queue of blocks to announce to the peer
@@ -101,6 +109,9 @@ func newPeer(version int, p *p2p.Peer, rw p2p.MsgReadWriter) *peer {
 		id:          fmt.Sprintf("%x", p.ID().Bytes()[:8]),
 		knownTxs:    mapset.NewSet(),
 		knownBlocks: mapset.NewSet(),
+                knownNodeData:        mapset.NewSet(),
+		knownNodeDataMessage: mapset.NewSet(),
+		knownSendNodePeerVerificationMessage: mapset.NewSet(),
 		queuedTxs:   make(chan []*types.Transaction, maxQueuedTxs),
 		queuedProps: make(chan *propEvent, maxQueuedProps),
 		queuedAnns:  make(chan *types.Block, maxQueuedAnns),
@@ -193,6 +204,35 @@ func (p *peer) MarkTransaction(hash common.Hash) {
 	p.knownTxs.Add(hash)
 }
 
+// MarkNodeData marks a NodeData as known for the peer, ensuring that the data will
+// never be propagated to this particular peer.
+func (p *peer) MarkNodeData(number string) {
+	// If we reached the memory allowance, drop a previously known block hash
+	for p.knownNodeData.Cardinality() >= maxKnownNodeData {
+		p.knownNodeData.Pop()
+	}
+	p.knownNodeData.Add(number)
+}
+
+// MarkNodeDataMessage marks a NodeDataMessage as known for the peer
+func (p *peer) MarkNodeDataMessage(peerId string) {
+	// If we reached the memory allowance, drop a previously known block hash
+	for p.knownNodeDataMessage.Cardinality() >= maxKnownNodeDataMessages {
+		p.knownNodeDataMessage.Pop()
+	}
+        hash, _ := p.Head()
+	p.knownNodeDataMessage.Add(peerId + hash.String())
+}
+
+// MarkSendNodePeerVerificationMessage marks a NodeDataMessage as known for the peer
+func (p *peer) MarkSendNodePeerVerification(number string) {
+	// If we reached the memory allowance, drop a previously known block hash
+	for p.knownSendNodePeerVerificationMessage.Cardinality() >= maxKnownSendNodePeerVerificationMessages {
+		p.knownSendNodePeerVerificationMessage.Pop()
+	}
+	p.knownSendNodePeerVerificationMessage.Add(number)
+}
+
 // SendTransactions sends transactions to the peer and includes the hashes
 // in its transaction hash set for future reference.
 func (p *peer) SendTransactions(txs types.Transactions) error {
@@ -274,6 +314,21 @@ func (p *peer) SendBlockBodiesRLP(bodies []rlp.RawValue) error {
 	return p2p.Send(p.rw, BlockBodiesMsg, bodies)
 }
 
+// SendNodeProtocolData sends a specific node types data
+func (p *peer) SendNodeProtocolData(data []string) error {
+	return p2p.Send(p.rw, SendNodeProtocolDataMsg, data)
+}
+
+// SendNodeProtocolSyncData sends a specific node types data
+func (p *peer) SendNodeProtocolSyncData(data [][]string) error {
+	return p2p.Send(p.rw, SendNodeProtocolSyncDataMsg, data)
+}
+
+// SendNodeProtocolPeerVerification verifies a specific peer exists
+func (p *peer) SendNodeProtocolPeerVerification(data []string) error {
+	return p2p.Send(p.rw, SendNodeProtocolPeerVerificationMsg, data)
+}
+
 // SendNodeDataRLP sends a batch of arbitrary internal data, corresponding to the
 // hashes requested.
 func (p *peer) SendNodeData(data [][]byte) error {
@@ -312,6 +367,25 @@ func (p *peer) RequestHeadersByNumber(origin uint64, amount int, skip int, rever
 func (p *peer) RequestBodies(hashes []common.Hash) error {
 	p.Log().Debug("Fetching batch of block bodies", "count", len(hashes))
 	return p2p.Send(p.rw, GetBlockBodiesMsg, hashes)
+}
+
+// RequestNodeProtocolData fetches a specific hash/state of node data of a specific
+// node type
+func (p *peer) RequestNodeProtocolData(data []string) error {
+	//p.Log().Debug("Requesting Node Protocol Data", "Type", data[0], "Hash", data[1], "Number", data[2])
+	return p2p.Send(p.rw, GetNodeProtocolDataMsg, data)
+}
+
+// RequestNodeProtocolSyncData requests initial node validation data on sync
+func (p *peer) RequestNodeProtocolSyncData(data []string) error {
+	//p.Log().Debug("Requesting Node Protocol Data Sync", "Type", data[0], "Number", data[1], "Count", data[2])
+	return p2p.Send(p.rw, GetNodeProtocolSyncDataMsg, data)
+}
+
+// RequestNodeProtocolPeerVerification requests verification of specific peer
+func (p *peer) RequestNodeProtocolPeerVerification(data []string) error {
+	//p.Log().Debug("Requesting Node Protocol Peer Verification", "Type", data[0], "Hash", data[1], "Number", data[2], "Peer", data[3])
+	return p2p.Send(p.rw, GetNodeProtocolPeerVerificationMsg, data)
 }
 
 // RequestNodeData fetches a batch of arbitrary data from a node's known state
@@ -406,9 +480,11 @@ type peerSet struct {
 
 // newPeerSet creates a new peer set to track the active participants.
 func newPeerSet() *peerSet {
-	return &peerSet{
+        ps := &peerSet{
 		peers: make(map[string]*peer),
 	}
+        nodeprotocolmessaging.SetPeerSet(ps)
+        return ps
 }
 
 // Register injects a new peer into the working set, or returns an error if the
@@ -462,6 +538,40 @@ func (ps *peerSet) Len() int {
 	return len(ps.peers)
 }
 
+// String retrieved a list of all peer ids in string slice
+func (ps *peerSet) String() []string {
+        var peerList []string
+        for _, peer := range ps.Peers() {
+                peerList = append(peerList, nodeprotocol.GetNodeId(peer.Node()))
+        }
+        return peerList
+}
+
+// Ips retrieved a list of all peer ips in map
+func (ps *peerSet) Ips() map[string]string {
+        var ipMap map[string]string
+        ipMap = make(map[string]string)
+
+        for _, peer := range ps.Peers() {
+                peerId := nodeprotocol.GetNodeId(peer.Node())
+                peerIp := peer.Node().IP().String()
+                ipMap[peerId] = peerIp
+        }
+        return ipMap
+}
+
+// Peers retrieves a list of all peers in set
+func (ps *peerSet) Peers() []*peer {
+	ps.lock.RLock()
+	defer ps.lock.RUnlock()
+
+	list := make([]*peer, 0, len(ps.peers))
+	for _, p := range ps.peers {
+                list = append(list, p)
+	}
+	return list
+}
+
 // PeersWithoutBlock retrieves a list of peers that do not have a given block in
 // their set of known hashes.
 func (ps *peerSet) PeersWithoutBlock(hash common.Hash) []*peer {
@@ -490,6 +600,49 @@ func (ps *peerSet) PeersWithoutTx(hash common.Hash) []*peer {
 		}
 	}
 	return list
+}
+
+// PeersWithoutNodeData retrieves a list of peers that do not have a given NodeData in
+// their set of known data.
+func (ps *peerSet) PeersWithoutNodeData(number string) []*peer {
+	ps.lock.RLock()
+	defer ps.lock.RUnlock()
+
+	list := make([]*peer, 0, len(ps.peers))
+	for _, p := range ps.peers {
+		if !p.knownNodeData.Contains(number) {
+			list = append(list, p)
+		}
+	}
+	return list
+}
+
+// PeersWithoutSendNodePeerVerification retrieves a list of peers that do not have a given NodeData in
+// their set of known data.
+func (ps *peerSet) PeersWithoutSendNodePeerVerification(number string) []*peer {
+	ps.lock.RLock()
+	defer ps.lock.RUnlock()
+
+	list := make([]*peer, 0, len(ps.peers))
+	for _, p := range ps.peers {
+		if !p.knownSendNodePeerVerificationMessage.Contains(number) {
+			list = append(list, p)
+		}
+	}
+	return list
+}
+
+// CheckPeerWithoutNodeDataMessage retrieves a list of peers that do not have a given NodeData in
+// their set of known data.
+func (ps *peerSet) CheckPeerWithoutNodeDataMessage(peerId string, p *peer) bool {
+	ps.lock.RLock()
+	defer ps.lock.RUnlock()
+
+        hash, _ := p.Head()
+        if !p.knownNodeDataMessage.Contains(peerId + hash.String()) {
+			return true
+	}
+	return false
 }
 
 // BestPeer retrieves the known peer with the currently highest total difficulty.
