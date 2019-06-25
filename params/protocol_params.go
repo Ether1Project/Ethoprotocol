@@ -92,7 +92,7 @@ var (
 	GenesisDifficulty      = big.NewInt(5000)   // Difficulty of the Genesis block.
 	MinimumDifficulty      = big.NewInt(5000)   // The minimum that the difficulty may ever be.
 	DurationLimit          = big.NewInt(13)     // The decision boundary on the blocktime duration used to determine whether difficulty should go up or not.
-        PenaltySystemBlock     = int64(162)         // Activatation height of Penalty System.
+        PenaltySystemBlock     = int64(1000)        // Activatation height of Penalty System.
 	DelayedBlockLength     = uint64(20)         // Threshold number of blocks that can be delayed.
-        NodeProtocolBlock      = int64(120)            // Activatation height of Node-Protocol System.
+        NodeProtocolBlock      = int64(400000)      // Activatation height of Node-Protocol System.
 )
