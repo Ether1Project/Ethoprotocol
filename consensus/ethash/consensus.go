@@ -690,19 +690,19 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	} else if (header.Number.Int64() >= 7000000) && (header.Number.Int64() < 8000000) {
 		blockReward = new(big.Int).Mul(big.NewInt(6), big.NewInt(1e+18))
 		masternodeReward = new(big.Int).Mul(big.NewInt(12), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(1.5), big.NewInt(1e+18))
+		developmentReward = big.NewInt(1.5e+18)
 	} else if (header.Number.Int64() >= 8000000) && (header.Number.Int64() < 9000000) {
 		blockReward = new(big.Int).Mul(big.NewInt(4), big.NewInt(1e+18))
 		masternodeReward = new(big.Int).Mul(big.NewInt(12), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(1.5), big.NewInt(1e+17))
+		developmentReward = big.NewInt(1.5e+18)
 	} else if (header.Number.Int64() >= 9000000) && (header.Number.Int64() < 10000000) {
 		blockReward = new(big.Int).Mul(big.NewInt(4), big.NewInt(1e+18))
 		masternodeReward = new(big.Int).Mul(big.NewInt(12), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(1.5), big.NewInt(1e+17))
+		developmentReward = big.NewInt(1.5e+18)
 	} else if header.Number.Int64() >= 10000000 {
 		blockReward = new(big.Int).Mul(big.NewInt(2), big.NewInt(1e+18))
 		masternodeReward = new(big.Int).Mul(big.NewInt(14), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(1.5), big.NewInt(1e+17))
+		developmentReward = big.NewInt(1.5e+18)
 	}
 	if config.IsConstantinople(header.Number) {
 		blockReward = ConstantinopleBlockReward
