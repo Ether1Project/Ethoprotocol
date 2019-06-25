@@ -40,13 +40,13 @@ import (
 
 // Ethash proof-of-work protocol constants.
 var (
-	FrontierBlockReward  *big.Int = new(big.Int).Mul(big.NewInt(50), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block
-	ByzantiumBlockReward *big.Int = new(big.Int).Mul(big.NewInt(50), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block upward from Byzantium
+	FrontierBlockReward  *big.Int = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block
+	ByzantiumBlockReward *big.Int = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block upward from Byzantium
 	//Constantinople Disabled For Ether-1 Implementation
-        ConstantinopleBlockReward *big.Int = new(big.Int).Mul(big.NewInt(50), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block upward from Constantinople
-	minerBlockReward          *big.Int = new(big.Int).Mul(big.NewInt(50), big.NewInt(1e+18))
-	masternodeBlockReward     *big.Int = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18))
-	developmentBlockReward    *big.Int = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18))
+  ConstantinopleBlockReward *big.Int = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block upward from Constantinople
+	minerBlockReward          *big.Int = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18))
+	masternodeBlockReward     *big.Int = new(big.Int).Mul(big.NewInt(4), big.NewInt(1e+18))
+	developmentBlockReward    *big.Int = new(big.Int).Mul(big.NewInt(2), big.NewInt(1e+18))
 	maxUncles                          = 2                // Maximum number of uncles allowed in a single block
 	allowedFutureBlockTime             = 15 * time.Second // Max time from current time allowed for blocks, before they're considered future blocks
 
@@ -664,45 +664,45 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	var developmentReward = developmentBlockReward // Set development reward
 
 	if (header.Number.Int64() >= 1000000) && (header.Number.Int64() < 2000000) {
-		blockReward = new(big.Int).Mul(big.NewInt(50), big.NewInt(1e+18))
-		masternodeReward = new(big.Int).Mul(big.NewInt(30), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18))
+		blockReward = new(big.Int).Mul(big.NewInt(18), big.NewInt(1e+18))
+		masternodeReward = new(big.Int).Mul(big.NewInt(4), big.NewInt(1e+18))
+		developmentReward = new(big.Int).Mul(big.NewInt(2), big.NewInt(1e+18))
 	} else if (header.Number.Int64() >= 2000000) && (header.Number.Int64() < 3000000) {
-		blockReward = new(big.Int).Mul(big.NewInt(50), big.NewInt(1e+18))
-		masternodeReward = new(big.Int).Mul(big.NewInt(40), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18))
+		blockReward = new(big.Int).Mul(big.NewInt(16), big.NewInt(1e+18))
+		masternodeReward = new(big.Int).Mul(big.NewInt(6), big.NewInt(1e+18))
+		developmentReward = new(big.Int).Mul(big.NewInt(2), big.NewInt(1e+18))
 	} else if (header.Number.Int64() >= 3000000) && (header.Number.Int64() < 4000000) {
-		blockReward = new(big.Int).Mul(big.NewInt(60), big.NewInt(1e+18))
-		masternodeReward = new(big.Int).Mul(big.NewInt(50), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18))
+		blockReward = new(big.Int).Mul(big.NewInt(14), big.NewInt(1e+18))
+		masternodeReward = new(big.Int).Mul(big.NewInt(6), big.NewInt(1e+18))
+		developmentReward = new(big.Int).Mul(big.NewInt(2), big.NewInt(1e+18))
 	} else if (header.Number.Int64() >= 4000000) && (header.Number.Int64() < 5000000) {
-		blockReward = new(big.Int).Mul(big.NewInt(70), big.NewInt(1e+18))
-		masternodeReward = new(big.Int).Mul(big.NewInt(60), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18))
+		blockReward = new(big.Int).Mul(big.NewInt(12), big.NewInt(1e+18))
+		masternodeReward = new(big.Int).Mul(big.NewInt(8), big.NewInt(1e+18))
+		developmentReward = new(big.Int).Mul(big.NewInt(2), big.NewInt(1e+18))
 	} else if (header.Number.Int64() >= 5000000) && (header.Number.Int64() < 6000000) {
-		blockReward = new(big.Int).Mul(big.NewInt(80), big.NewInt(1e+18))
-		masternodeReward = new(big.Int).Mul(big.NewInt(70), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18))
+		blockReward = new(big.Int).Mul(big.NewInt(10), big.NewInt(1e+18))
+		masternodeReward = new(big.Int).Mul(big.NewInt(10), big.NewInt(1e+18))
+		developmentReward = new(big.Int).Mul(big.NewInt(2), big.NewInt(1e+18))
 	} else if (header.Number.Int64() >= 6000000) && (header.Number.Int64() < 7000000) {
-		blockReward = new(big.Int).Mul(big.NewInt(80), big.NewInt(1e+18))
-		masternodeReward = new(big.Int).Mul(big.NewInt(80), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18))
+		blockReward = new(big.Int).Mul(big.NewInt(8), big.NewInt(1e+18))
+		masternodeReward = new(big.Int).Mul(big.NewInt(10), big.NewInt(1e+18))
+		developmentReward = new(big.Int).Mul(big.NewInt(2), big.NewInt(1e+18))
 	} else if (header.Number.Int64() >= 7000000) && (header.Number.Int64() < 8000000) {
-		blockReward = new(big.Int).Mul(big.NewInt(70), big.NewInt(1e+18))
-		masternodeReward = new(big.Int).Mul(big.NewInt(80), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(20), big.NewInt(1e+18))
+		blockReward = new(big.Int).Mul(big.NewInt(6), big.NewInt(1e+18))
+		masternodeReward = new(big.Int).Mul(big.NewInt(12), big.NewInt(1e+18))
+		developmentReward = new(big.Int).Mul(big.NewInt(1.5), big.NewInt(1e+18))
 	} else if (header.Number.Int64() >= 8000000) && (header.Number.Int64() < 9000000) {
-		blockReward = new(big.Int).Mul(big.NewInt(60), big.NewInt(1e+18))
-		masternodeReward = new(big.Int).Mul(big.NewInt(90), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(150), big.NewInt(1e+17))
+		blockReward = new(big.Int).Mul(big.NewInt(4), big.NewInt(1e+18))
+		masternodeReward = new(big.Int).Mul(big.NewInt(12), big.NewInt(1e+18))
+		developmentReward = new(big.Int).Mul(big.NewInt(1.5), big.NewInt(1e+17))
 	} else if (header.Number.Int64() >= 9000000) && (header.Number.Int64() < 10000000) {
-		blockReward = new(big.Int).Mul(big.NewInt(50), big.NewInt(1e+18))
-		masternodeReward = new(big.Int).Mul(big.NewInt(90), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(150), big.NewInt(1e+17))
+		blockReward = new(big.Int).Mul(big.NewInt(4), big.NewInt(1e+18))
+		masternodeReward = new(big.Int).Mul(big.NewInt(12), big.NewInt(1e+18))
+		developmentReward = new(big.Int).Mul(big.NewInt(1.5), big.NewInt(1e+17))
 	} else if header.Number.Int64() >= 10000000 {
-		blockReward = new(big.Int).Mul(big.NewInt(40), big.NewInt(1e+18))
-		masternodeReward = new(big.Int).Mul(big.NewInt(100), big.NewInt(1e+18))
-		developmentReward = new(big.Int).Mul(big.NewInt(150), big.NewInt(1e+17))
+		blockReward = new(big.Int).Mul(big.NewInt(2), big.NewInt(1e+18))
+		masternodeReward = new(big.Int).Mul(big.NewInt(14), big.NewInt(1e+18))
+		developmentReward = new(big.Int).Mul(big.NewInt(1.5), big.NewInt(1e+17))
 	}
 	if config.IsConstantinople(header.Number) {
 		blockReward = ConstantinopleBlockReward
