@@ -326,10 +326,13 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 		params.MinimumDifficulty = big.NewInt(131072)
 		return calcDifficultyRobinHood(time, parent)
 	case config.IsByzantium(next):
+		params.MinimumDifficulty = big.NewInt(200000000000)
 		return calcDifficultyByzantium(time, parent)
 	case config.IsHomestead(next):
+		params.MinimumDifficulty = big.NewInt(200000000000)
 		return calcDifficultyHomestead(time, parent)
 	default:
+		params.MinimumDifficulty = big.NewInt(200000000000)
 		return calcDifficultyFrontier(time, parent)
 	}
 }
