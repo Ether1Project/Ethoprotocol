@@ -53,6 +53,8 @@ import (
 	"github.com/ethereum/go-ethereum/signer/fourbyte"
 	"github.com/ethereum/go-ethereum/signer/rules"
 	"github.com/ethereum/go-ethereum/signer/storage"
+	colorable "github.com/mattn/go-colorable"
+	"github.com/mattn/go-isatty"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -333,7 +335,7 @@ func setCredential(ctx *cli.Context) error {
 		utils.Fatalf("Invalid address specified: %s", addr)
 	}
 	address := common.HexToAddress(addr)
-	password := getPassPhrase("Please enter a passphrase to store for this address:", true)
+	password := getPassPhrase("Please enter a password to store for this address:", true)
 	fmt.Println()
 
 	stretchedKey, err := readMasterKey(ctx, nil)
@@ -392,7 +394,13 @@ func initialize(c *cli.Context) error {
 		}
 		fmt.Println()
 	}
-	log.Root().SetHandler(log.LvlFilterHandler(log.Lvl(c.Int(logLevelFlag.Name)), log.StreamHandler(logOutput, log.TerminalFormat(true))))
+	usecolor := (isatty.IsTerminal(os.Stderr.Fd()) || isatty.IsCygwinTerminal(os.Stderr.Fd())) && os.Getenv("TERM") != "dumb"
+	output := io.Writer(logOutput)
+	if usecolor {
+		output = colorable.NewColorable(logOutput)
+	}
+	log.Root().SetHandler(log.LvlFilterHandler(log.Lvl(c.Int(logLevelFlag.Name)), log.StreamHandler(output, log.TerminalFormat(usecolor))))
+
 	return nil
 }
 
@@ -837,17 +845,17 @@ func testExternalUI(api *core.SignerAPI) {
 // TODO: there are many `getPassPhrase` functions, it will be better to abstract them into one.
 func getPassPhrase(prompt string, confirmation bool) string {
 	fmt.Println(prompt)
-	password, err := console.Stdin.PromptPassword("Passphrase: ")
+	password, err := console.Stdin.PromptPassword("Password: ")
 	if err != nil {
-		utils.Fatalf("Failed to read passphrase: %v", err)
+		utils.Fatalf("Failed to read password: %v", err)
 	}
 	if confirmation {
-		confirm, err := console.Stdin.PromptPassword("Repeat passphrase: ")
+		confirm, err := console.Stdin.PromptPassword("Repeat password: ")
 		if err != nil {
-			utils.Fatalf("Failed to read passphrase confirmation: %v", err)
+			utils.Fatalf("Failed to read password confirmation: %v", err)
 		}
 		if password != confirm {
-			utils.Fatalf("Passphrases do not match")
+			utils.Fatalf("Passwords do not match")
 		}
 	}
 	return password
