@@ -47,6 +47,10 @@ var TestnetBootnodes = []string{}
 // Rinkeby test network.
 var RinkebyBootnodes = []string{}
 
+// GoerliBootnodes are the enode URLs of the P2P bootstrap nodes running on the
+// Görli test network.
+var GoerliBootnodes = []string{}
+
 // DiscoveryV5Bootnodes are the enode URLs of the P2P bootstrap nodes for the
 // experimental RLPx v5 topic-discovery network.
 var DiscoveryV5Bootnodes = []string{}
