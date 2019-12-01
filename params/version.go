@@ -24,7 +24,7 @@ const (
 	VersionMajor = 1          // Major version component of the current release
 	VersionMinor = 3          // Minor version component of the current release
 	VersionPatch = 8          // Patch version component of the current release
-	VersionMeta  = "Ether1-Upstream-Update-Stable" // Version metadata to append to the version string
+	VersionMeta  = "Ether1-Kronos-Unreleased" // Version metadata to append to the version string
 )
 
 // Version holds the textual version string.
