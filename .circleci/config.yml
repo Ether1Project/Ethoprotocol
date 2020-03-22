@@ -23,3 +23,5 @@ jobs:
 
       # specify any bash command here prefixed with `run: `
       - run: make geth
+      - store_artifacts:
+          path: build/bin/
