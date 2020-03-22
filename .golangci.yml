@@ -1,4 +1,4 @@
-# This files configures github.com/golangci/golangci-lint.
+# This file configures github.com/golangci/golangci-lint.
 
 run:
   timeout: 2m
