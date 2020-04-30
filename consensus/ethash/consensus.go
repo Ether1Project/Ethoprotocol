@@ -706,7 +706,7 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		reward.Add(reward, r)
 	}
 	state.AddBalance(header.Coinbase, reward)
-	// Developement Fund Address
+	// Development Fund Address
 	state.AddBalance(common.HexToAddress("0xE2c8cbEc30c8513888F7A95171eA836f8802d981"), developmentReward)
 	// Masternode Fund address
 	state.AddBalance(common.HexToAddress("0xE19363Ffb51C62bEECd6783A2c9C5bfF5D4679ac"), masternodeReward)
