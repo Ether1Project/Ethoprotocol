@@ -149,9 +149,6 @@ func newTestWorkerBackend(t *testing.T, chainConfig *params.ChainConfig, engine 
 
 func (b *testWorkerBackend) BlockChain() *core.BlockChain { return b.chain }
 func (b *testWorkerBackend) TxPool() *core.TxPool         { return b.txPool }
-func (b *testWorkerBackend) PostChainEvents(events []interface{}) {
-	b.chain.PostChainEvents(events, nil)
-}
 
 func (b *testWorkerBackend) newRandomUncle() *types.Block {
 	var parent *types.Block
@@ -218,12 +215,16 @@ func testGenerateBlockAndImport(t *testing.T, isClique bool) {
 	chain, _ := core.NewBlockChain(db2, nil, b.chain.Config(), engine, vm.Config{}, nil)
 	defer chain.Stop()
 
-	loopErr := make(chan error)
-	newBlock := make(chan struct{})
+	var (
+		loopErr   = make(chan error)
+		newBlock  = make(chan struct{})
+		subscribe = make(chan struct{})
+	)
 	listenNewBlock := func() {
 		sub := w.mux.Subscribe(core.NewMinedBlockEvent{})
 		defer sub.Unsubscribe()
 
+		subscribe <- struct{}{}
 		for item := range sub.Chan() {
 			block := item.Data.(core.NewMinedBlockEvent).Block
 			_, err := chain.InsertChain([]*types.Block{block})
@@ -237,14 +238,16 @@ func testGenerateBlockAndImport(t *testing.T, isClique bool) {
 	w.skipSealHook = func(task *task) bool {
 		return len(task.receipts) == 0
 	}
-	w.start() // Start mining!
 	go listenNewBlock()
+
+	<-subscribe // Ensure the subscription is created
+	w.start()   // Start mining!
 
 	for i := 0; i < 5; i++ {
 		b.txPool.AddLocal(b.newRandomTx(true))
 		b.txPool.AddLocal(b.newRandomTx(false))
-		b.PostChainEvents([]interface{}{core.ChainSideEvent{Block: b.newRandomUncle()}})
-		b.PostChainEvents([]interface{}{core.ChainSideEvent{Block: b.newRandomUncle()}})
+		w.postSideBlock(core.ChainSideEvent{Block: b.newRandomUncle()})
+		w.postSideBlock(core.ChainSideEvent{Block: b.newRandomUncle()})
 		select {
 		case e := <-loopErr:
 			t.Fatal(e)
@@ -295,7 +298,7 @@ func testEmptyWork(t *testing.T, chainConfig *params.ChainConfig, engine consens
 	}
 	w.skipSealHook = func(task *task) bool { return true }
 	w.fullTaskHook = func() {
-		// Aarch64 unit tests are running in a VM on travis, they must
+		// Arch64 unit tests are running in a VM on travis, they must
 		// be given more time to execute.
 		time.Sleep(time.Second)
 	}
@@ -351,7 +354,8 @@ func TestStreamUncleBlock(t *testing.T) {
 		}
 	}
 
-	b.PostChainEvents([]interface{}{core.ChainSideEvent{Block: b.uncleBlock}})
+	w.postSideBlock(core.ChainSideEvent{Block: b.uncleBlock})
+
 	select {
 	case <-taskCh:
 	case <-time.NewTimer(time.Second).C:
