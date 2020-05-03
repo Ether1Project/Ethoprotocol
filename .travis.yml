@@ -35,28 +35,6 @@ jobs:
         repo:       Ether1Project/Ether1
 
   - stage:          build
-    os:             linux
-    arch:           arm64
-    dist:           xenial
-    go:             1.13.x
-    script:
-    - go run build/ci.go install ./cmd/geth
-    - zip -r ether-1-linux-arm-1.3.1.zip build/bin/geth
-    before_deploy:
-          - git config --local user.name "FallenGravity"
-          - git config --local user.email "ethan@ether1.org"
-          - git tag 1.3.1
-    deploy:
-      provider:     releases
-      skip_cleanup: true
-      api_key:
-        secure:     f2neuksH7DULgk7ieZ7cPtSb98OPVHwvfoP4s5BbcJj/2KDGE1ho+1CA+AK5/vwX4tdfYiHoX5rt2qmDkyU+6NVGHdTCO+GTihPJiiIRp6CR1J73+bdgZ8YVgnctRUWRdu8nCc04k8POjfQcSPagmLeSYT52MA1Hh1wLJGp90siZV4UEOkvy6WyF2ywgNh2b0ZvpbQQTD2fgBR+T6qDZIpJVSLqVOa/OkRPzvx0WgxRVidV9yL+G9nYW9h+8RYTB3DkmQ9+tmuvOi35CHUcWA2zScNSqjCLpQcOGecK4j8zqhw0cFSv8Fim13jDwe2Do5wCkxeCjx3t1MWXRPfWkRorNb6NJQBHmGkOg9Jb5WFuXnlyYvvKLsYBoUz0asoceF4kj7rT9zGYL0tl4LTpHdIiZSrOGMZ/lgU9Cpo4JmbeiNTWdz9GgtG+BW/HdewKy0/sZEucnBOAEgvmeP1JphBCK3rgcEAuZ2cB8E0ZgbDCBwPdGmVg5vF/aHGEvVLbDNt0wY6dq3MNEFhqQPgkjKgVq/lPTvjs8OXb3JbUshd58/uBT0qU1NyE0q//47cGuXE+L8L7VAPUwJwsVnzYP29/ZgJQrG4zzkHcGBnkg8QRNiy6REhcErYlt4H9AZMyzbYXC2/nyDWbtWEQP128LWirsCOKX8af9qPwRYZDAp68=
-      file:
-        - "ether-1-linux-arm-1.3.1.zip"
-      on:
-        repo:       Ether1Project/Ether1
-
-  - stage:          build
     os:             osx
     osx_image:      xcode11.3
     go:             1.13.x
