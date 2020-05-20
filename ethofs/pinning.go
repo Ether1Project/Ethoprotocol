@@ -15,7 +15,7 @@ var NodePinningConsensus map[string]NodePins
 var ErroredPinsMap map[string]string
 var PinCount = int(0)
 
-// SetExistingPinList scans current ethoFS pins and adds them to local tracking
+// SetExistingPinList scans current ethoFS pins and then adds them to local tracking
 func SetExistingPinList() {
 	sh := shell.NewShell("localhost:" + apiPort)
 	var updatedPinMap map[string]string
@@ -33,18 +33,18 @@ func SetExistingPinList() {
 	selfPins = updatedPinMap
 }
 
-// AddPin adds new ethoFS pin to local repo after replication factor has been checked
+// AddPin adds new ethoFS pins to local repo after replication factor has been checked
 func AddPin(pin string, fraudCheck bool) {
-	//CHECK IF PIN IS IN FAILED PIN TRACKING ARRAY - IF NOT GO AHEAD/ELSE SKIP/RETURN
+	// CHECK IF PIN IS IN FAILED PIN TRACKING ARRAY - IF NOT GO AHEAD/ELSE SKIP/RETURN
 	if _, ok := ErroredPinsMap[pin]; ok {
 	} else {
 		shTemp := shell.NewShell("localhost:" + apiPort)
 		shTemp.SetTimeout(10 * time.Second)
 		err := shTemp.Pin(pin)
 		if err != nil {
-			//ADD FAILED PIN TO TRACKING ARRAY
+			// ADD FAILED PIN TO TRACKING ARRAY
 			ErroredPinsMap[pin] = pin
-			//LAUNCH GO ROUTINE TO ADD IMMEDIATE PIN
+			// LAUNCH GO ROUTINE TO ADD IMMEDIATE PIN
 			go AddImmediatePin(pin, fraudCheck)
 		} else {
 			if fraudCheck {
@@ -63,8 +63,8 @@ func AddPin(pin string, fraudCheck bool) {
 	}
 }
 
-// AddImmediatePin adds pin to local repo without checking replication factor
-// mainly used for upload pinning for faster results
+// AddImmediatePin adds the pin to the local repo without checking replication factor
+// mainly used for upload pinning giving us faster results
 func AddImmediatePin(pin string, fraudCheck bool) {
 	shTemp := shell.NewShell("localhost:" + apiPort)
 	shTemp.SetTimeout(10000 * time.Second)
@@ -84,11 +84,11 @@ func AddImmediatePin(pin string, fraudCheck bool) {
 			}
 		}
 	}
-	//REMOVE FROM TRACKING ARRAY
+	// REMOVE FROM TRACKING ARRAY
 	delete(ErroredPinsMap, pin)
 }
 
-// RemovePin removes pin from local repo after checking replication factor
+// RemovePin removes the pin from the local repo after checking replication factor
 func RemovePin(pin string) {
 	shTemp := shell.NewShell("localhost:" + apiPort)
 	shTemp.SetTimeout(10 * time.Second)
@@ -108,7 +108,7 @@ func RemovePin(pin string) {
 	}
 }
 
-// GetImmediatePins looks for any immediate pinning requests via p2p pubsub communication protocol
+// GetImmediatePins looks for any immediate pinning requests via the p2p pubsub communication protocol
 func GetImmediatePins() {
 	time.Sleep(60 * time.Second)
 	for {

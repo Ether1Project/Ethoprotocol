@@ -1,22 +1,22 @@
 package main
 
 import (
-	"os"
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
 )
 
-// FindProvs is used to seek out providers of a specified ethoFS hash
+// FindProvs is used to seek out the providers of a specified ethoFS hash
 func FindProvs(hash string) int {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, ipfsLocation + "ipfs", "dht", "findprovs", hash)
-	newEnv := append(os.Environ(), "IPFS_PATH=" + ipfsRepoPath)
-        cmd.Env = newEnv
+	cmd := exec.CommandContext(ctx, ipfsLocation+"ipfs", "dht", "findprovs", hash)
+	newEnv := append(os.Environ(), "IPFS_PATH="+ipfsRepoPath)
+	cmd.Env = newEnv
 	out, err := cmd.CombinedOutput()
 
 	if ctx.Err() == context.DeadlineExceeded {
@@ -26,7 +26,7 @@ func FindProvs(hash string) int {
 		return 0
 	}
 
-	// Determine how many providers were found
+	// Determines how many providers were found
 	splitString := strings.Split(string(out), "\n")
 	if err != nil {
 		fmt.Printf("Providers Seatch Failure - Hash: %s Error: %s\n", hash, err)

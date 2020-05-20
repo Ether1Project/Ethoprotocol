@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
 	"os"
 	"os/exec"
 	"runtime"
 	"time"
-	"github.com/fatih/color"
 )
 
 var PeerHighWater = "600"
@@ -68,12 +68,15 @@ func ParseFlags() {
 			boldRed.Println("Masternode does not have enough Disk space")
 		}
 
-		InitialContractValues() //INITIAL LOOK TO GET SYNC STATUS - TO MAKE SURE ETHO CHAIN IS SYNCED
+		// INITIAL LOOK TO GET SYNC STATUS - TO MAKE SURE ETHO CHAIN IS SYNCED
+		InitialContractValues()
 
 		SetPeerLimits()
 		GetBootnodeContractValues()
 		ConfigBootnodePeers()
-		time.Sleep(5 * time.Second) //PAUSE HERE
+
+		// PAUSE HERE
+		time.Sleep(5 * time.Second)
 	} else if serviceNodeFlag {
 		fmt.Println("ethoFS Service Node Started")
 		v, _ := mem.VirtualMemory()
@@ -99,7 +102,8 @@ func ParseFlags() {
 			boldRed.Println("Service Node does not have enough Disk Space")
 		}
 
-		InitialContractValues() //INITIAL LOOK TO GET SYNC STATUS - TO MAKE SURE ETHO CHAIN IS SYNCED
+		// INITIAL LOOK TO GET SYNC STATUS - TO MAKE SURE ETHO CHAIN IS SYNCED
+		InitialContractValues()
 
 		SetPeerLimits()
 		GetBootnodeContractValues()
@@ -130,12 +134,15 @@ func ParseFlags() {
 			boldRed.Println("Gateway Node does not have enough Disk Space")
 		}
 
-		InitialContractValues() //INITIAL LOOK TO GET SYNC STATUS - TO MAKE SURE ETHO CHAIN IS SYNCED
+		// INITIAL LOOK TO GET SYNC STATUS - TO MAKE SURE ETHO CHAIN IS SYNCED
+		InitialContractValues()
 
 		SetPeerLimits()
 		GetBootnodeContractValues()
 		ConfigBootnodePeers()
-		time.Sleep(5 * time.Second) //PAUSE HERE
+
+		// PAUSE HERE
+		time.Sleep(5 * time.Second)
 		go CheckGateway()
 	} else {
 		fmt.Println("No Node Type Specified - Exiting ethoFS")
@@ -143,20 +150,20 @@ func ParseFlags() {
 	}
 }
 
-// ConfigBootnodePeers resets ipfs bootnode config so dynamic bootnodes can be imported from ETHO
+// ConfigBootnodePeers resets ipfs bootnode config so that dynamic bootnodes can be imported from ETHO
 func ConfigBootnodePeers() {
 	if len(BootnodePeers) > 0 {
-		cmd := exec.Command(ipfsLocation + "ipfs", "bootstrap", "rm", "--all")
-		newEnv := append(os.Environ(), "IPFS_PATH=" + ipfsRepoPath)
-        	cmd.Env = newEnv
+		cmd := exec.Command(ipfsLocation+"ipfs", "bootstrap", "rm", "--all")
+		newEnv := append(os.Environ(), "IPFS_PATH="+ipfsRepoPath)
+		cmd.Env = newEnv
 		_, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Printf("IPFS Bootnode Peers Removal Config Failure %s\n", err)
 		}
 		for k := range BootnodePeers {
-			cmd = exec.Command(ipfsLocation + "ipfs", "bootstrap", "add", BootnodePeers[k])
-			newEnv := append(os.Environ(), "IPFS_PATH=" + ipfsRepoPath)
-        		cmd.Env = newEnv
+			cmd = exec.Command(ipfsLocation+"ipfs", "bootstrap", "add", BootnodePeers[k])
+			newEnv := append(os.Environ(), "IPFS_PATH="+ipfsRepoPath)
+			cmd.Env = newEnv
 			_, err := cmd.CombinedOutput()
 			if err != nil {
 				fmt.Printf("IPFS Bootnode Peers Config Failure %s\n", err)
@@ -167,16 +174,16 @@ func ConfigBootnodePeers() {
 
 // SetPeerLimits initiates ipfs peer limit config
 func SetPeerLimits() {
-	cmd := exec.Command(ipfsLocation + "ipfs", "config", "--json", "Swarm.ConnMgr.LowWater", PeerLowWater)
-	newEnv := append(os.Environ(), "IPFS_PATH=" + ipfsRepoPath)
-        cmd.Env = newEnv
+	cmd := exec.Command(ipfsLocation+"ipfs", "config", "--json", "Swarm.ConnMgr.LowWater", PeerLowWater)
+	newEnv := append(os.Environ(), "IPFS_PATH="+ipfsRepoPath)
+	cmd.Env = newEnv
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("IPFS Peer Connection (Low) Config Failure %s\n", err)
 	}
-	cmd = exec.Command(ipfsLocation + "ipfs", "config", "--json", "Swarm.ConnMgr.HighWater", PeerHighWater)
-	newEnv = append(os.Environ(), "IPFS_PATH=" + ipfsRepoPath)
-        cmd.Env = newEnv
+	cmd = exec.Command(ipfsLocation+"ipfs", "config", "--json", "Swarm.ConnMgr.HighWater", PeerHighWater)
+	newEnv = append(os.Environ(), "IPFS_PATH="+ipfsRepoPath)
+	cmd.Env = newEnv
 	_, err = cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("IPFS Peer Connection (High) Config Failure %s\n", err)

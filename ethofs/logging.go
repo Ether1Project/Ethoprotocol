@@ -8,7 +8,8 @@ import (
 
 // OutputPeerInfo is used to log peer data
 func OutputPeerInfo() {
-	time.Sleep(60 * time.Second) //PAUSE HERE
+	// PAUSE HERE
+	time.Sleep(60 * time.Second)
 	for {
 		file, _ := os.Create("ethofsOutput.txt")
 		for _, v := range NodeHealthConsensus {
@@ -21,7 +22,8 @@ func OutputPeerInfo() {
 
 // OutputPeerInfoCSV is used to log peer data in CSV format
 func OutputPeerInfoCSV() {
-	time.Sleep(60 * time.Second) //PAUSE HERE
+	// PAUSE HERE
+	time.Sleep(60 * time.Second)
 	for {
 		file, _ := os.Create("/var/www/html/ethofsOutput.csv")
 		var count = 0
@@ -49,16 +51,19 @@ func OutputPeerInfoCSV() {
 		var averageDifference = totalDifference / count
 		fmt.Fprintf(file, "Average Block Height Difference: %v\n", averageDifference)
 		fmt.Fprintf(file, "Current Block Height: %v\n", BlockHeight)
-		time.Sleep(30 * time.Second) //PAUSE HERE
+		// PAUSE HERE
+		time.Sleep(30 * time.Second)
 	}
 }
 
 // OutputHealthMessage is used to log peer health data
 func OutputHealthMessage() {
-	time.Sleep(60 * time.Second) //PAUSE HERE
+	// PAUSE HERE
+	time.Sleep(60 * time.Second)
 	for {
 		file, _ := os.Create("ethofsMessageOutput.txt")
 		fmt.Fprintf(file, "%v", HealthConsensusMessage)
-		time.Sleep(30 * time.Second) //PAUSE HERE
+		// PAUSE HERE
+		time.Sleep(30 * time.Second)
 	}
 }

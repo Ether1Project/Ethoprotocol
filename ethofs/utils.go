@@ -32,7 +32,8 @@ func CheckGateway() {
 			ip, err := consensus.ExternalIP()
 			ipAddressString := ip.String()
 			if err == nil {
-				fmt.Println("External IP Address: " + ipAddressString) // print IPv4/IPv6 in string format
+				// print IPv4/IPv6 in string format
+				fmt.Println("External IP Address: " + ipAddressString)
 				url := "http://" + ipAddressString + "/ipfs/" + mhash
 				req, err := http.NewRequest("GET", url, nil)
 				if err != nil {

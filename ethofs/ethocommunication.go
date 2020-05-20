@@ -1,8 +1,8 @@
 package main
 
 import (
-//	"./NodesStorage"
-//	"./PinStorage"
+	//	"./NodesStorage"
+	//	"./PinStorage"
 	"bytes"
 	"context"
 	"fmt"
@@ -20,7 +20,7 @@ import (
 
 var location string
 
-// GetLatestEther1Block utilize local geth.ipc to obtain latest block information
+// GetLatestEther1Block utilizes local geth.ipc to obtain latest block information
 func GetLatestEther1Block() string {
 	if runtime.GOOS == "linux" {
 		if ethoLocation != "" {
@@ -49,7 +49,7 @@ func GetLatestEther1Block() string {
 	return "0"
 }
 
-// GetBootnodeContractValues utilizes local geth.ipc fo etho chain communication to obtain sc values
+// GetBootnodeContractValues utilizes local geth.ipc fo etho chain communication to obtain smart contract values
 func GetBootnodeContractValues() {
 	if runtime.GOOS == "linux" {
 		if ethoLocation != "" {
@@ -89,7 +89,7 @@ func GetBootnodeContractValues() {
 	}
 }
 
-// GetPinContractValues utilizes local geth.ipc fo etho chain communication to obtain sc values
+// GetPinContractValues utilizes local geth.ipc to obtain smart contract values
 func GetPinContractValues(ContractPinTrackingMap map[string][]string) map[string][]string {
 	if runtime.GOOS == "linux" {
 		if ethoLocation != "" {
@@ -170,7 +170,7 @@ func GetPinContractValues(ContractPinTrackingMap map[string][]string) map[string
 	return InternalContractPinTrackingMap
 }
 
-// InitialContractValues initiates local mapping with values stored in sc
+// InitialContractValues initiates local mapping with values stored in smart contract
 func InitialContractValues() {
 	fmt.Println("Waiting For Ether-1 Node To Finish Sync...")
 	time.Sleep(30 * time.Second)
@@ -190,7 +190,7 @@ func InitialContractValues() {
 	}
 }
 
-// UpdateContractBootnodeValues updates local mapping of sc bootnodes
+// UpdateContractBootnodeValues updates local mapping of smart contract bootnodes
 func UpdateContractBootnodeValues() {
 	time.Sleep(30 * time.Minute)
 	for {
@@ -199,7 +199,7 @@ func UpdateContractBootnodeValues() {
 	}
 }
 
-// UpdateContractPinValues updates local mapping of sc pins being stores
+// UpdateContractPinValues updates local mapping of smart contract pins being stored
 func UpdateContractPinValues() {
 	time.Sleep(60 * time.Second)
 	ContractPinTrackingMap := make(map[string][]string)

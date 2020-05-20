@@ -1,20 +1,20 @@
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// GetIpfsStats determines repo stats/usage
+// GetIpfsStats determines the repos stats/usage
 func GetIpfsStats() {
 	for {
-		cmd := exec.Command(ipfsLocation + "ipfs", "repo", "stat", "--human")
-		newEnv := append(os.Environ(), "IPFS_PATH=" + ipfsRepoPath)
-        	cmd.Env = newEnv
+		cmd := exec.Command(ipfsLocation+"ipfs", "repo", "stat", "--human")
+		newEnv := append(os.Environ(), "IPFS_PATH="+ipfsRepoPath)
+		cmd.Env = newEnv
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			fmt.Printf("IPFS Stats Failure %s\n", err)

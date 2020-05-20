@@ -16,8 +16,13 @@ import (
 	"time"
 )
 
-const mainChannelString = "ethoFSPinningChannel_alpha11" //VERIFICATION CHANNEL FOR PICKING UP PINS FROM ETHOFS
+// VERIFICATION CHANNEL FOR PICKING UP PINS FROM ETHOFS
+const mainChannelString = "ethoFSPinningChannel_alpha11"
+
+// ethoFS Version
 const AppVersion = "ethoFS 1.1.0-beta"
+
+// ethoFS Logo
 const ethoFSLogo = `
 |
 |         __  __          ___________
