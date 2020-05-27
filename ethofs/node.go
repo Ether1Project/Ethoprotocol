@@ -20,13 +20,13 @@ import (
 
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/coreapi"
-	"github.com/ipfs/go-ipfs/plugin/loader" // This package is needed so that all the preloaded plugins are loaded automatically
+	// This package is needed so that all the preloaded plugins are loaded automatically
+	"github.com/ipfs/go-ipfs/plugin/loader"
 	"github.com/ipfs/go-ipfs/repo/fsrepo"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 
 // Setting up the ethoFS/IPFS Repo
-
 func setupPlugins(externalPluginsPath string) error {
 	// Load any external plugins if available on externalPluginsPath
 	plugins, err := loader.NewPluginLoader(filepath.Join(externalPluginsPath, "plugins"))
@@ -40,7 +40,7 @@ func setupPlugins(externalPluginsPath string) error {
 	}
 
 	if err := plugins.Inject(); err != nil {
-		return fmt.Errorf("error initializing plugins: %s", err)
+		return fmt.Errorf("error injecting plugins: %s", err)
 	}
 
 	return nil
@@ -79,8 +79,10 @@ func createNode(ctx context.Context, repoPath string) (icore.CoreAPI, error) {
 
 	nodeOptions := &core.BuildCfg{
 		Online:  true,
-		Routing: libp2p.DHTOption, // This option sets the node to be a full DHT node (both fetching and storing DHT Records)
-		// Routing: libp2p.DHTClientOption, // This option sets the node to be a client DHT node (only fetching records)
+		// This option sets the node to be a full DHT node (both fetching and storing DHT Records)
+		Routing: libp2p.DHTOption,
+		// This option sets the node to be a client DHT node (only fetching records)
+		// Routing: libp2p.DHTClientOption,
 		Repo: repo,
 	}
 
@@ -279,16 +281,16 @@ func main() {
 	fmt.Println("\n-- Going to connect to a few nodes in the Network as bootstrappers --")
 
 	bootstrapNodes := []string{
+		// DNS Nodes
 		"/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
 		"/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa",
 		"/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb",
 		"/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt",
-
+		// IP v4 Nodes
 		"/ip4/138.201.67.219/tcp/4001/p2p/QmUd6zHcbkbcs7SMxwLs48qZVX3vpcM8errYS7xEczwRMA",
 		"/ip4/138.201.67.220/tcp/4001/p2p/QmNSYxZAiJHeLdkBg38roksAR9So7Y5eojks1yjEcUtZ7i",
 		"/ip4/138.201.68.74/tcp/4001/p2p/QmdnXwLrC8p1ueiq2Qya8joNvk3TVVDAut7PrikmZwubtR",
 		"/ip4/94.130.135.167/tcp/4001/p2p/QmUEMvxS2e7iDrereVYc5SWPauXPyNwxcy9BXZrC1QTcHE",
-
 	}
 
 	go connectToPeers(ctx, ipfs, bootstrapNodes)
