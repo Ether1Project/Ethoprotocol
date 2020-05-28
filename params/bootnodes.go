@@ -58,6 +58,8 @@ var MainnetBootnodes = []string{
 	"enode://6d9ed0b577af7162694fdc38098ebf037ac5984eb051f144ee23e15686c6396b6a1a1b43c8a105479de6742af088dbf3b543bc56a782b427cfb6cc0b60fede8b@144.91.117.137:30305",
 	// Primate's Bootnode
 	"enode://b9cc36cb5ec88973a02163e69fee6ba0e30c880151e3118dbcb906430cbd26bab42e15d3f0d3ed0fe2621cea29d3a61ee6d1954eabddbb50e43326071ab0ac0c@63.141.228.219:44444",
+	// Dylie's Bootnode
+	"enode://ff3669514ad3a68e2e8aaee40d7a9fd8723ee0a7cb4492dc18c89a13f0d9b77b9fd0be950de1c45a9afd8f8cfbd4b4f13d215454fa2c18c654c54984a705483f@5.189.157.250:30305",
 }
 
 // TestnetBootnodes are the enode URLs of the P2P bootstrap nodes running on the
