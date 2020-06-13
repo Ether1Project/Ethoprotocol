@@ -1,4 +1,4 @@
-package main
+package ethofs
 
 import (
 	//	"./NodesStorage"
@@ -192,19 +192,11 @@ func InitialContractValues() {
 
 // UpdateContractBootnodeValues updates local mapping of smart contract bootnodes
 func UpdateContractBootnodeValues() {
-	time.Sleep(30 * time.Minute)
-	for {
-		GetBootnodeContractValues()
-		time.Sleep(60 * time.Minute)
-	}
+	GetBootnodeContractValues()
 }
 
 // UpdateContractPinValues updates local mapping of smart contract pins being stored
 func UpdateContractPinValues() {
-	time.Sleep(60 * time.Second)
 	ContractPinTrackingMap := make(map[string][]string)
-	for {
-		ContractPinTrackingMap = GetPinContractValues(ContractPinTrackingMap)
-		time.Sleep(10 * time.Second)
-	}
+	ContractPinTrackingMap = GetPinContractValues(ContractPinTrackingMap)
 }

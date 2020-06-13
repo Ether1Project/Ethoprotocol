@@ -1,4 +1,4 @@
-package main
+package ethofs
 
 import (
 	"context"
@@ -17,6 +17,8 @@ import (
 	icorepath "github.com/ipfs/interface-go-ipfs-core/path"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	ma "github.com/multiformats/go-multiaddr"
+
+	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/coreapi"
@@ -153,7 +155,7 @@ func connectToPeers(ctx context.Context, ipfs icore.CoreAPI, peers []string) err
 			defer wg.Done()
 			err := ipfs.Swarm().Connect(ctx, *peerInfo)
 			if err != nil {
-				log.Printf("failed to connect to %s: %s", peerInfo.ID, err)
+				log.Warn("ethoFS failed to connect to node", "node", peerInfo.ID, "message", err)
 			}
 		}(peerInfo)
 	}
@@ -195,34 +197,32 @@ func getUnixfsNode(path string) (files.Node, error) {
 	return f, nil
 }
 
-func main() {
+func initializeEthofsNode() {
 
-	fmt.Println("-- Deploying ethoFS Node -- ")
+	log.Info("Deploying ethoFS Node")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	/*
-		// Spawn a node using the default path (~/.ipfs), assuming that a repo exists there already
-		fmt.Println("Spawning node on default repo")
-		ipfs, err := spawnDefault(ctx)
-		if err != nil {
-			fmt.Println("No ethoFS repo available on the default path")
-		}
-	*/
-
-	// Spawn a node using a temporary path, creating a temporary repo for the run
-	fmt.Println("Spawning ethoFS node on a temporary repo")
-	ipfs, err := spawnEphemeral(ctx)
+	// Spawn a node using the default path (~/.ipfs), assuming that a repo exists there already
+	log.Info("Initializing ethoFS node on default repo path")
+	ipfs, err := spawnDefault(ctx)
 	if err != nil {
-		panic(fmt.Errorf("failed to spawn ephemeral node: %s", err))
+		log.Warn("No ethoFS repo available on the default path")
 	}
 
-	fmt.Println("ethoFS node is running")
+	// Spawn a node using a temporary path, creating a temporary repo for the run
+	/*log.Info("Spawning ethoFS node on a temporary repo")
+	ipfs, err := spawnEphemeral(ctx)
+	if err != nil {
+		panic(fmt.Errorf("failed to spawn ephemeral ethoFS node: %s", err))
+	}*/
 
-	fmt.Println("\n-- Adding and getting back files & directories --")
+	log.Info("ethoFS node is running")
 
-	inputBasePath := "./example-folder/"
+	log.Info("Retrieving ethoFS Data")
+
+	/*inputBasePath := "./example-folder/"
 	inputPathFile := inputBasePath + "ipfs.paper.draft3.pdf"
 	inputPathDirectory := inputBasePath + "test-dir"
 
@@ -279,23 +279,21 @@ func main() {
 	fmt.Printf("Got directory back from IPFS (IPFS path: %s) and wrote it to %s\n", cidDirectory.String(), outputPathDirectory)
 
 	fmt.Println("\n-- Going to connect to a few nodes in the Network as bootstrappers --")
+	*/
 
 	bootstrapNodes := []string{
-		// DNS Nodes
-		"/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
-		"/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa",
-		"/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb",
-		"/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt",
-		// IP v4 Nodes
-		"/ip4/138.201.67.219/tcp/4001/p2p/QmUd6zHcbkbcs7SMxwLs48qZVX3vpcM8errYS7xEczwRMA",
-		"/ip4/138.201.67.220/tcp/4001/p2p/QmNSYxZAiJHeLdkBg38roksAR9So7Y5eojks1yjEcUtZ7i",
-		"/ip4/138.201.68.74/tcp/4001/p2p/QmdnXwLrC8p1ueiq2Qya8joNvk3TVVDAut7PrikmZwubtR",
-		"/ip4/94.130.135.167/tcp/4001/p2p/QmUEMvxS2e7iDrereVYc5SWPauXPyNwxcy9BXZrC1QTcHE",
+		"/ip4/164.68.107.82/tcp/4001/ipfs/QmeG81bELkgLBZFYZc53ioxtvRS8iNVzPqxUBKSuah2rcQ",
+		"/ip4/164.68.98.94/tcp/4001/ipfs/QmRYw68MzD4jPvner913mLWBdFfpPfNUx8SRFjiUCJNA4f",
+		"/ip4/51.38.131.241/tcp/4001/ipfs/QmaGGSUqoFpv6wuqvNKNBsxDParVuGgV3n3iPs2eVWeSN4",
+		"/ip4/164.68.108.54/tcp/4001/ipfs/QmRwQ49Zknc2dQbywrhT8ArMDS9JdmnEyGGy4mZ1wDkgaX",
+		"/ip4/51.77.150.202/tcp/4001/ipfs/QmUEy4ScCYCgP6GRfVgrLDqXfLXnUUh4eKaS1fDgaCoGQJ",
+		"/ip4/51.79.70.144/tcp/4001/ipfs/QmTcwcKqKcnt84wCecShm1zdz1KagfVtqopg1xKLiwVJst",
+		"/ip4/142.44.246.43/tcp/4001/ipfs/QmPW8zExrEeno85Us3H1bk68rBo7N7WEhdpU9pC9wjQxgu",
 	}
 
 	go connectToPeers(ctx, ipfs, bootstrapNodes)
 
-	exampleCIDStr := "QmUaoioqU7bxezBQZkUcgcSyokatMY71sxsALxQmRRrHrj"
+	/*exampleCIDStr := "QmUaoioqU7bxezBQZkUcgcSyokatMY71sxsALxQmRRrHrj"
 
 	fmt.Printf("Fetching a file from the network with CID %s\n", exampleCIDStr)
 	outputPath := outputBasePath + exampleCIDStr
@@ -312,4 +310,5 @@ func main() {
 	}
 
 	fmt.Printf("Wrote the file to %s\n", outputPath)
+	*/
 }

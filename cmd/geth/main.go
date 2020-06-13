@@ -35,6 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/console"
 	"github.com/ethereum/go-ethereum/eth"
+	"github.com/ethereum/go-ethereum/ethofs"
 	"github.com/ethereum/go-ethereum/eth/downloader"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/internal/debug"
@@ -77,6 +78,7 @@ var (
 		utils.EthashDatasetDirFlag,
 		utils.EthashDatasetsInMemoryFlag,
 		utils.EthashDatasetsOnDiskFlag,
+		utils.EthofsFlag,
 		utils.TxPoolLocalsFlag,
 		utils.TxPoolNoLocalsFlag,
 		utils.TxPoolJournalFlag,
@@ -350,6 +352,11 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 			utils.Fatalf("Failed to retrieve light ethereum service: %v", err)
 		}
 		lesService.SetContractBackend(ethClient)
+	}
+
+	// Check for ethoFS enabled node and initalize accordingly
+	if ctx.GlobalString(utils.EthofsFlag) == "gn" || ctx.GlobalString(utils.EthofsFlag) == "mn" || ctx.GlobalString(utils.EthofsFlag) == "sn" {
+		ethofs.initializeEthofs(ctx.GlobalString(utils.EthofsFlag))
 	}
 
 	go func() {

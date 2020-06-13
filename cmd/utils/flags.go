@@ -753,6 +753,12 @@ var (
 		Usage: "External EVM configuration (default = built-in interpreter)",
 		Value: "",
 	}
+	// Ethofs Node Flags
+	EthofsFlag = cli.StringFlag{
+		Name:  "ethofs",
+		Usage: "ethoFS node type to be initialized",
+		Value: "",
+	}
 )
 
 // MakeDataDir retrieves the currently requested data directory, terminating

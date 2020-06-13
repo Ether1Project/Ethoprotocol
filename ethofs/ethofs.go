@@ -1,4 +1,4 @@
-package main
+package ethofs
 
 import (
 	"fmt"
@@ -16,12 +16,6 @@ import (
 	"time"
 )
 
-// VERIFICATION CHANNEL FOR PICKING UP PINS FROM ETHOFS
-const mainChannelString = "ethoFSPinningChannel_alpha11"
-
-// ethoFS Version
-const AppVersion = "ethoFS 1.1.0-beta"
-
 // ethoFS Logo
 const ethoFSLogo = `
 |
@@ -36,58 +30,29 @@ const ethoFSLogo = `
 `
 
 var selfNodeID string
-var selfNodeIDHashOnly string
 var repFactor int
-
-var LastHealthMessage string
-var HealthConsensusMessage string
-var NodeHealthConsensus map[string]NodeHealth
-var HealthCheckMessage string
-
-var snEligibility string
-var mnEligibility string
-var gnEligibility string
-var gatewayTest = "No"
-
 var BlockHeight = int(0)
 
-func main() {
+func initializeEthofs() {
 	//OUTPUT LOGO
 	fmt.Println(ethoFSLogo)
-	fmt.Println(AppVersion)
-	//SETUP SIGNAL FOR GRACEFUL EXIT
-	var gracefulStop = make(chan os.Signal)
-	signal.Notify(gracefulStop, syscall.SIGTERM)
-	signal.Notify(gracefulStop, syscall.SIGINT)
-	go func() {
-		<-gracefulStop
-		fmt.Printf("Exiting Program\n")
-		os.Exit(0)
-	}()
+	initializeEthofsNode()
 	selfPins = make(map[string]string)
 	PinCounts = make(map[string]int)
-	LastPinMessage = make(map[string]string)
 	ErroredPinsMap = make(map[string]string)
-	NodeHealthConsensus = make(map[string]NodeHealth)
 	NodePinningConsensus = make(map[string]NodePins)
 
-	ParseFlags()
-	go UpdateContractBootnodeValues() //START GETTING BOOTNODE PEERS AND OTHER CONTRACT VALUES
-	go UpdateContractPinValues()      //START GETTING PIN CONTRACT VALUES
-	AssignNodeID()                    //SET NODE IF FOR BROADCAST
-	go PeerManagement()               //CONNECT TO AND MANAGE ETHOFS PEERSET
-	go MiscManagement()               //MANAGE MISC PROCESSES (GC)
-	SetExistingPinList()
-
-	time.Sleep(2 * time.Second) //PAUSE HERE
-
-	go GetHealthConsensus()
+	AssignNodeID()                    //SET NODE ID FOR BROADCAST
 	if gatewayNodeFlag || masterNodeFlag {
-		go ScanPinList()
+		//ScanPinList()
 	}
-	go BroadcastHealthConsensus()
-	go GetImmediatePins()
-	go GetIpfsStats()
+}
+
+func newBlock() {
+
+	UpdateContractBootnodeValues() //GET BOOTNODE PEERS AND OTHER CONTRACT VALUES
+	UpdateContractPinValues()      //GET PIN CONTRACT VALUES
+
 	for {
 		info := color.New(color.FgBlue, color.Bold).SprintFunc()
 
@@ -133,7 +98,7 @@ func main() {
 
 // Find and store ipfs node id
 func AssignNodeID() {
-	var ipfsId string
+	/*var ipfsId string
 	for {
 		id, err := GetIpfsId()
 		if err == nil {
@@ -159,5 +124,5 @@ func AssignNodeID() {
 	} else {
 		log.Fatal("Error: Unable to Get External IP Address - Exiting Program\n")
 	}
-	go HealthConsensusSubscribe()
+	go HealthConsensusSubscribe()*/
 }
