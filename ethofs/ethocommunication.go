@@ -18,7 +18,13 @@ import (
 	"time"
 )
 
+const mainChannelString = "ethoFSPinningChannel_alpha11"
+
 var location string
+var ethoLocation string
+var apiPort string
+var BootnodePeers []string
+
 
 // GetLatestEther1Block utilizes local geth.ipc to obtain latest block information
 func GetLatestEther1Block() string {

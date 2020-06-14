@@ -1,7 +1,8 @@
 package ethofs
 
 import (
-	"bytes"
+	//"bytes"
+	"unsafe"
 )
 
 func ByteSliceToString(bs []byte) string {

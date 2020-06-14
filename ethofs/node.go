@@ -2,21 +2,24 @@ package ethofs
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
+	"strings"
 
 	config "github.com/ipfs/go-ipfs-config"
 	files "github.com/ipfs/go-ipfs-files"
 	libp2p "github.com/ipfs/go-ipfs/core/node/libp2p"
 	icore "github.com/ipfs/interface-go-ipfs-core"
-	icorepath "github.com/ipfs/interface-go-ipfs-core/path"
 	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	ma "github.com/multiformats/go-multiaddr"
+
+	assets "github.com/ipfs/go-ipfs/assets"
+	namesys "github.com/ipfs/go-ipfs/namesys"
 
 	"github.com/ethereum/go-ethereum/log"
 
@@ -27,6 +30,17 @@ import (
 	"github.com/ipfs/go-ipfs/repo/fsrepo"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
+
+const (
+	nBitsForKeypairDefault = 2048
+	bitsOptionName         = "bits"
+	emptyRepoOptionName    = "empty-repo"
+	profileOptionName      = "profile"
+)
+
+var errRepoExists = errors.New(`ipfs configuration file already exists!
+Reinitializing would overwrite your keys.
+`)
 
 // Setting up the ethoFS/IPFS Repo
 func setupPlugins(externalPluginsPath string) error {
@@ -197,18 +211,220 @@ func getUnixfsNode(path string) (files.Node, error) {
 	return f, nil
 }
 
+func applyProfiles(conf *config.Config, profiles string) error {
+	if profiles == "" {
+		return nil
+	}
+
+	for _, profile := range strings.Split(profiles, ",") {
+		transformer, ok := config.Profiles[profile]
+		if !ok {
+			return fmt.Errorf("invalid configuration profile: %s", profile)
+		}
+
+		if err := transformer.Transform(conf); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func doInit(out io.Writer, repoRoot string, empty bool, nBitsForKeypair int, confProfiles string, conf *config.Config) error {
+	if _, err := fmt.Fprintf(out, "initializing IPFS node at %s\n", repoRoot); err != nil {
+		return err
+	}
+
+	if err := checkWritable(repoRoot); err != nil {
+		return err
+	}
+
+	if fsrepo.IsInitialized(repoRoot) {
+		return errRepoExists
+	}
+
+	if conf == nil {
+		var err error
+		conf, err = config.Init(out, nBitsForKeypair)
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := applyProfiles(conf, confProfiles); err != nil {
+		return err
+	}
+
+	if err := fsrepo.Init(repoRoot, conf); err != nil {
+		return err
+	}
+
+	if !empty {
+		if err := addDefaultAssets(out, repoRoot); err != nil {
+			return err
+		}
+	}
+
+
+	// Create swarm key for ethoFS private network
+	err := createSwarmKey(repoRoot)
+	if err != nil {
+		log.Error("Error creating ethoFS swarm key", "error", err)
+		return err
+	}
+
+	return initializeIpnsKeyspace(repoRoot)
+}
+
+func createSwarmKey(repoRoot string) error {
+	f, err := os.Create(repoRoot + "/swarm.key")
+	if err != nil {
+		return err
+	}
+	_, err = f.WriteString("/key/swarm/psk/1.0.0/\n/base16/\n38307a74b2176d0054ffa2864e31ee22d0fc6c3266dd856f6d41bddf14e2ad63")
+	if err != nil {
+		f.Close()
+        	return err
+	}
+
+	log.Info("ethoFS swarm key created successfully")
+	err = f.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func checkWritable(dir string) error {
+	_, err := os.Stat(dir)
+	if err == nil {
+		// dir exists, make sure we can write to it
+		testfile := filepath.Join(dir, "test")
+		fi, err := os.Create(testfile)
+		if err != nil {
+			if os.IsPermission(err) {
+				return fmt.Errorf("%s is not writeable by the current user", dir)
+			}
+			return fmt.Errorf("unexpected error while checking writeablility of repo root: %s", err)
+		}
+		fi.Close()
+		return os.Remove(testfile)
+	}
+
+	if os.IsNotExist(err) {
+		// dir doesn't exist, check that we can create it
+		return os.Mkdir(dir, 0775)
+	}
+
+	if os.IsPermission(err) {
+		return fmt.Errorf("cannot write to %s, incorrect permissions", err)
+	}
+
+	return err
+}
+
+func addDefaultAssets(out io.Writer, repoRoot string) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	r, err := fsrepo.Open(repoRoot)
+	if err != nil { // NB: repo is owned by the node
+		return err
+	}
+
+	nd, err := core.NewNode(ctx, &core.BuildCfg{Repo: r})
+	if err != nil {
+		return err
+	}
+	defer nd.Close()
+
+	dkey, err := assets.SeedInitDocs(nd)
+	if err != nil {
+		return fmt.Errorf("init: seeding init docs failed: %s", err)
+	}
+	log.Warn("init: seeded init docs %s", dkey)
+
+	if _, err = fmt.Fprintf(out, "to get started, enter:\n"); err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprintf(out, "\n\tipfs cat /ipfs/%s/readme\n\n", dkey)
+	return err
+}
+
+func initializeIpnsKeyspace(repoRoot string) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	r, err := fsrepo.Open(repoRoot)
+	if err != nil { // NB: repo is owned by the node
+		return err
+	}
+
+	nd, err := core.NewNode(ctx, &core.BuildCfg{Repo: r})
+	if err != nil {
+		return err
+	}
+	defer nd.Close()
+
+	return namesys.InitializeKeyspace(ctx, nd.Namesys, nd.Pinning, nd.PrivateKey)
+}
+
+func initializeEthofsRepo() error {
+
+	empty := true
+	nBitsForKeypair  := nBitsForKeypairDefault
+
+	var conf *config.Config
+
+	/*f := req.Files
+	if f != nil {
+		it := req.Files.Entries()
+		if !it.Next() {
+			if it.Err() != nil {
+				return it.Err()
+			}
+			return fmt.Errorf("file argument was nil")
+		}
+		file := files.FileFromEntry(it)
+		if file == nil {
+			return fmt.Errorf("expected a regular file")
+		}
+
+		if err := json.NewDecoder(file).Decode(conf); err != nil {
+			return err
+		}
+	}*/
+
+	//conf = &config.Config{}
+	//profiles := profileOptionName
+	profiles := "lowpower"
+
+        repoPath, _ := config.PathRoot()
+
+	//return doInit(os.Stdout, cctx.ConfigRoot, empty, nBitsForKeypair, profiles, conf)
+	return doInit(os.Stdout, repoPath, empty, nBitsForKeypair, profiles, conf)
+}
+
 func initializeEthofsNode() {
 
-	log.Info("Deploying ethoFS Node")
+	log.Info("Deploying ethoFS node")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	// Spawn a node using the default path (~/.ipfs), assuming that a repo exists there already
 	log.Info("Initializing ethoFS node on default repo path")
-	ipfs, err := spawnDefault(ctx)
+	//ipfs, err := spawnDefault(ctx)
+	_, err := spawnDefault(ctx)
 	if err != nil {
-		log.Warn("No ethoFS repo available on the default path")
+		log.Warn("Unable to intialize ethoFS node on default repo path", "error", err)
+		log.Info("ethoFS node repo initialization started")
+		initErr := initializeEthofsRepo()
+		if initErr != nil {
+			log.Error("Unable to initalize ethoFS repo on default path", "error", initErr)
+			os.Exit(0)
+		}
 	}
 
 	// Spawn a node using a temporary path, creating a temporary repo for the run
@@ -281,7 +497,7 @@ func initializeEthofsNode() {
 	fmt.Println("\n-- Going to connect to a few nodes in the Network as bootstrappers --")
 	*/
 
-	bootstrapNodes := []string{
+	/*bootstrapNodes := []string{
 		"/ip4/164.68.107.82/tcp/4001/ipfs/QmeG81bELkgLBZFYZc53ioxtvRS8iNVzPqxUBKSuah2rcQ",
 		"/ip4/164.68.98.94/tcp/4001/ipfs/QmRYw68MzD4jPvner913mLWBdFfpPfNUx8SRFjiUCJNA4f",
 		"/ip4/51.38.131.241/tcp/4001/ipfs/QmaGGSUqoFpv6wuqvNKNBsxDParVuGgV3n3iPs2eVWeSN4",
@@ -289,9 +505,9 @@ func initializeEthofsNode() {
 		"/ip4/51.77.150.202/tcp/4001/ipfs/QmUEy4ScCYCgP6GRfVgrLDqXfLXnUUh4eKaS1fDgaCoGQJ",
 		"/ip4/51.79.70.144/tcp/4001/ipfs/QmTcwcKqKcnt84wCecShm1zdz1KagfVtqopg1xKLiwVJst",
 		"/ip4/142.44.246.43/tcp/4001/ipfs/QmPW8zExrEeno85Us3H1bk68rBo7N7WEhdpU9pC9wjQxgu",
-	}
+	}*/
 
-	go connectToPeers(ctx, ipfs, bootstrapNodes)
+	//go connectToPeers(ctx, ipfs, bootstrapNodes)
 
 	/*exampleCIDStr := "QmUaoioqU7bxezBQZkUcgcSyokatMY71sxsALxQmRRrHrj"
 

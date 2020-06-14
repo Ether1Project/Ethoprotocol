@@ -3,7 +3,6 @@ package ethofs
 import (
 	"fmt"
 	"github.com/ipfs/go-ipfs-api"
-	"math/rand"
 	"time"
 )
 
@@ -109,7 +108,7 @@ func RemovePin(pin string) {
 }
 
 // GetImmediatePins looks for any immediate pinning requests via the p2p pubsub communication protocol
-func GetImmediatePins() {
+/*func GetImmediatePins() {
 	time.Sleep(60 * time.Second)
 	for {
 		var PinningConsensusBroadcastChannel = selfNodeIDHashOnly + "ImmediatePinningChannel_alpha11"
@@ -135,7 +134,7 @@ func GetImmediatePins() {
 		randomWait := rand.Intn(20)
 		time.Sleep(time.Duration(randomWait) * time.Second)
 	}
-}
+}*/
 
 func ArrayContains(checkString string, checkArray []string) bool {
 	for _, n := range checkArray {

@@ -34,10 +34,10 @@ func ScrubFraudulentPins(pin string, size int64) bool {
 // CheckPinSize compares the saved pin size in the smart contract with actual pin size
 func CheckPinSize(pin string) bool {
 	// Gets saved upload size in order to verify the validity of the upload
-	contractPinSize := GetPinSizeFromContract(pin)
+	//contractPinSize := GetPinSizeFromContract(pin)
 
 	// Gets the actual pin/data size to compare to the saved upload size
-	objectSize, err := GetObjectSize(pin)
+	/*objectSize, err := GetObjectSize(pin)
 	if err != nil {
 		return false
 	}
@@ -45,7 +45,7 @@ func CheckPinSize(pin string) bool {
 		// Adds the pin to fraudulent pin list
 		FraudulentPins[pin] = objectSize
 		return false
-	}
+	}*/
 	return true
 }
 
@@ -54,9 +54,9 @@ func CheckPinSize(pin string) bool {
 func AnalyzePin(pin string) {
 	pinCount := FindProvs(pin)
 	if pinCount < repFactor {
-		if verboseFlag {
-			fmt.Printf("Low Pin Count Detected - Pin Replication Initiated - Hash: %s Pin Count: %d\n", pin, pinCount)
-		}
+		//if verboseFlag {
+		//	fmt.Printf("Low Pin Count Detected - Pin Replication Initiated - Hash: %s Pin Count: %d\n", pin, pinCount)
+		//}
 		contractPinSize := GetPinSizeFromContract(pin)
 		if ScrubFraudulentPins(pin, contractPinSize) {
 			AddPin(pin, true)
@@ -64,9 +64,9 @@ func AnalyzePin(pin string) {
 			AddPin(pin, false)
 		}
 	} else if pinCount > (3 * repFactor) {
-		if verboseFlag {
-			fmt.Printf("High Pin Count Detected - Pin Removal Initiated - Hash: %s Pin Count: %d\n", pin, pinCount)
-		}
+		//if verboseFlag {
+		//	fmt.Printf("High Pin Count Detected - Pin Removal Initiated - Hash: %s Pin Count: %d\n", pin, pinCount)
+		//}
 		RemovePin(pin)
 	}
 }

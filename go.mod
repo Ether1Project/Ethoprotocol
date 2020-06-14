@@ -35,8 +35,9 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huin/goupnp v1.0.0
 	github.com/influxdata/influxdb v1.2.3-0.20180221223340-01288bdb0883
-	github.com/ipfs/go-ipfs v0.5.1
+	github.com/ipfs/go-ipfs v0.6.0-rc6
 	github.com/ipfs/go-ipfs-api v0.0.3
+	github.com/ipfs/go-ipfs-cmds v0.2.9
 	github.com/ipfs/go-ipfs-config v0.7.2
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/interface-go-ipfs-core v0.3.0
@@ -72,8 +73,8 @@ require (
 	github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef
 	github.com/wsddn/go-ecdh v0.0.0-20161211032359-48726bab9208
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
-	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
-	golang.org/x/sys v0.0.0-20200519105757-fe76b779f299
+	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a
+	golang.org/x/sys v0.0.0-20200523222454-059865788121
 	golang.org/x/text v0.3.2
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce

@@ -355,8 +355,8 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 	}
 
 	// Check for ethoFS enabled node and initalize accordingly
-	if ctx.GlobalString(utils.EthofsFlag) == "gn" || ctx.GlobalString(utils.EthofsFlag) == "mn" || ctx.GlobalString(utils.EthofsFlag) == "sn" {
-		ethofs.initializeEthofs(ctx.GlobalString(utils.EthofsFlag))
+	if ctx.GlobalString(utils.EthofsFlag.Name) == "gn" || ctx.GlobalString(utils.EthofsFlag.Name) == "mn" || ctx.GlobalString(utils.EthofsFlag.Name) == "sn" {
+		ethofs.InitializeEthofs(ctx.GlobalString(utils.EthofsFlag.Name))
 	}
 
 	go func() {
