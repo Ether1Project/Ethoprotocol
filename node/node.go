@@ -35,29 +35,31 @@ import (
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/prometheus/tsdb/fileutil"
-	"github.com/fatih/color"
 )
 
 const logo = `
-MMMMMMMMMMMMMMMMm/mMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMh/-.hMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMy:/-..yMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMs///:---sMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMNs///+:::::oNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMmdMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMmooo+++/::///oNMMMMMMMMMMMMMMMMMMMMMMMMMMMMhyMMMMM/ NMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMN--+MMMM
-MMMMMMd++ooo+o+/////+omMMMMMMMMMMMMMMMMMMMMMMMMMMM:"MMMMM/ NMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM""MMMM
-MMMMMh//+oosoo++++++++omMMMMMMMMMMMMMs+++++++sNMM+. +omMM/ Nho///+sMMMNs+++++++sNMMMNs+++MMMMMMMMMMM""MMMM
-MMMMs://+oossso+oooooooodMMMMMMMMMMMo sNNNNNs oMMm-'mmNMM/ :smNNNs sMMo sNNNNNs oMMMo sNNMMMMMMMMMMM""MMMM
-MMMo-://+oossssoooossssssdMMMMMMMMMMo dMMMMMm +MMM:'MMMMM/ NMMMMMd oMM+ dMMMMMm +MMM+ mMMMMMMMMMMMMM''MMMM
-MMMMNhs++oossysssssssydmMMMMMMMMMMMMo +ooooo+ +MMM:'MMMMM/ NMMMMMd oMM+ +ooooo+ +MMM+ mMMMMh:::+MMMM""MMMM
-MMMNmmMMNdyssyyssyhmNMNmmNMMMMMMMMMMo ydddddddmMMM:'MMMMM/ NMMMMMd oMM+ ydddddddmMMM+ mMMMMMMMMMMMMM""MMMM
-MMMMMdhhdmMMNmdmNMMNdhhdMMMMMMMMMMMMo dMMMMMNshMMM:'MMMMM/ NMMMMMd oMM+ dMMMMMNshMMM+ mMMMMMMMMMMMMM""MMMM
-MMMMMMdyyyoshmMmdhyyyymMMMMMMMMMMMMMy /hhhhh+ sMMM/ ohdMM/ NMMMMMd oMMs /hhhhh/ sMMy: sdMMMMMMMMMMMs""sMMM
-MMMMMMMmsoo+++NsssssyNMMMMMMMMMMMMMMMdyyyyyyydMMMMMdyyhMMdhMMMMMMNhmMMMdyyyyyyydMMMhhhhmMMMMMMMMMMMhhhhMMM
-MMMMMMMMNs+///N++++yMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMy/::N///hMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMd:-N-/mMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-MMMMMMMMMMMMN/m+NMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+                                                                                                                                            
+                 ,.                                                                                                                         
+                 ,,,                                                                                                                        
+                 ,,,,                                                                                                                       
+                 ,,,,,,                                                                                                                     
+         ,       ,,,,,,,                                                    ,,.                                                       .,,,  
+       .,,,      ,,,,,,,,,                                        ,,.       ,,.                                                         ,,, 
+      ,,,,,      ,,,,,,,,,,                                       ,,.       ,,.                                                         ,,, 
+    ,,,,,,,      ,,,,,,,,,,,,                  ,,,,,,,,,,,,,.   ,,,,,,,,    ,,..,,,,,,,,,,     ,,,,,,,,,,,,,      .,,,,,,               ,,, 
+   ,,,,,,,,,     ,,,,,,,,,,,,,                 ,,         ,,,     ,,.       ,,,         ,,.    ,,         ,,,     ,,,                   ,,, 
+ ,,,,,,,,,,,     ,,,,,,,,,,,,,,,               ,,         ,,,     ,,.       ,,.         ,,.    ,,         ,,,     ,,,                   ,,, 
+ ,,,,,,,,,,,     ,,,,,,,,,,,,,,,,              ,,,,,,,,,,,,,,     ,,.       ,,.         ,,.    ,,,,,,,,,,,,,,     ,,,       ,,,,,,.     ,,, 
+    .,,,,,,,     ,,,,,,,,,,,.                  ,,                 ,,.       ,,.         ,,.    ,,                 ,,,                   ,,, 
+  ,,,    ,,,,    ,,,,,,,     ,,,               ,,                 ,,.       ,,.         ,,.    ,,                 ,,,                   ,,, 
+   ,,,,,,        ,,,     ,,,,,                 ,,         ,,,     ,,.       ,,.         ,,.    ,,         ,,,     ,,,                   ,,, 
+     ,,,,,,,.       .,,,,,,,                   ,,,,,,,,,,,,,      .,,,,,    ,,.         ,,.    ,,,,,,,,,,,,,    ,,,,,,.               .,,,,,
+       ,,,,,,    ,,,,,,,,,                                                                                                                  
+         ,,,,,   ,,,,,,,,                                                                                                                   
+          ,,,,   ,,,,,,                                                                                                                     
+            ,,   ,,,,                                                                     Kepler v1.4.0                                     
+                 ,,                                                                       ethoFS Enabled Node                               
+                 ,                                                                                                                          
 `
 
 // Node is a container on which services can be registered.
@@ -364,9 +366,7 @@ func (n *Node) startIPC(apis []rpc.API) error {
 	n.ipcListener = listener
 	n.ipcHandler = handler
 	n.log.Info("IPC endpoint opened", "url", n.ipcEndpoint)
-	color.Set(color.FgRed)
 	fmt.Println(logo)
-	color.Unset()
 	return nil
 }
 
