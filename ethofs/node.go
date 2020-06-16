@@ -32,6 +32,8 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 
+var Api icore.CoreAPI
+
 const (
 	nBitsForKeypairDefault = 2048
 	bitsOptionName         = "bits"
@@ -84,6 +86,20 @@ func createTempRepo(ctx context.Context) (string, error) {
 	return repoPath, nil
 }
 
+func swarmPeers(ctx context.Context) {
+		conns, err := Api.Swarm().Peers(ctx)
+		if err != nil {
+			log.Error("Error swarming ethoFS peers")
+		}
+
+		for _, c := range conns {
+			addr := c.Address().String()
+			peer := c.ID().Pretty()
+			log.Info("ethoFS peer connection found", "addr", addr, "id", peer) 
+		}
+
+}
+
 // Creates an ethoFS/IPFS node and returns its coreAPI
 func createNode(ctx context.Context, repoPath string) (icore.CoreAPI, error) {
 	// Open the repo
@@ -108,8 +124,12 @@ func createNode(ctx context.Context, repoPath string) (icore.CoreAPI, error) {
 		return nil, err
 	}
 
+	Node = node // Assign node to stored ethoFS node var
+
 	// Attach the Core API to the constructed node
-	return coreapi.NewCoreAPI(node)
+	api, apiErr := coreapi.NewCoreAPI(node)
+	Api = api
+	return api, apiErr
 }
 
 // Spawns a node on the default repo location, if the repo exists

@@ -35,6 +35,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huin/goupnp v1.0.0
 	github.com/influxdata/influxdb v1.2.3-0.20180221223340-01288bdb0883
+	github.com/ipfs/go-cid v0.0.6
 	github.com/ipfs/go-ipfs v0.6.0-rc6
 	github.com/ipfs/go-ipfs-api v0.0.3
 	github.com/ipfs/go-ipfs-cmds v0.2.9

@@ -73,6 +73,8 @@ func (st *insertStats) report(chain []*types.Block, index int, dirty common.Stor
 		}
 		log.Info("Imported new chain segment", context...)
 
+		//ethofs.NewBlock() // Run ethoFS block updates/checks
+
 		// Bump the stats reported to the next section
 		*st = insertStats{startTime: now, lastIndex: index + 1}
 	}

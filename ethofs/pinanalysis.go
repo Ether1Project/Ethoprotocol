@@ -52,7 +52,7 @@ func CheckPinSize(pin string) bool {
 // AnalyzePin compares the actual provider counts to the required replication factor to
 // determine if local node should add the pin or remove the pin
 func AnalyzePin(pin string) {
-	pinCount := FindProvs(pin)
+	pinCount := FindProvs(Node, pin)
 	if pinCount < repFactor {
 		//if verboseFlag {
 		//	fmt.Printf("Low Pin Count Detected - Pin Replication Initiated - Hash: %s Pin Count: %d\n", pin, pinCount)

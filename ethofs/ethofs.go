@@ -1,12 +1,19 @@
 package ethofs
 
 import (
+	"time"
+
 	"github.com/ethereum/go-ethereum/log"
+
+	"github.com/ipfs/go-ipfs/core"
 )
 
 var selfNodeID string
 var repFactor int
 var BlockHeight = int(0)
+
+var testHash = "QmdP3gTCyZwR4F8Kf5qFH6JovbXVXhLM7XiCRqnsTY5dHG"
+var Node *core.IpfsNode
 
 func InitializeEthofs(nodeType string) {
 	log.Info("Starting ethoFS node initialization", "type", nodeType)
@@ -17,13 +24,18 @@ func InitializeEthofs(nodeType string) {
 	ErroredPinsMap = make(map[string]string)
 	NodePinningConsensus = make(map[string]NodePins)
 	AssignNodeID()                    //SET NODE ID FOR BROADCAST
+
+	go NewBlock()
 }
 
-func newBlock() {
-
-	UpdateContractBootnodeValues() //GET BOOTNODE PEERS AND OTHER CONTRACT VALUES
-	UpdateContractPinValues()      //GET PIN CONTRACT VALUES
-
+func NewBlock() {
+	for {
+		time.Sleep(30 * time.Second)
+		//UpdateContractBootnodeValues() //GET BOOTNODE PEERS AND OTHER CONTRACT VALUES
+		//UpdateContractPinValues()      //GET PIN CONTRACT VALUES
+		providerCount := FindProvs(Node, testHash)
+		log.Info("ethoFS provider search successful", "count", providerCount, "hash", testHash)
+	}
 }
 
 // Find and store ipfs node id
