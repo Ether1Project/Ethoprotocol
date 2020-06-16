@@ -9,14 +9,13 @@ var repFactor int
 var BlockHeight = int(0)
 
 func InitializeEthofs(nodeType string) {
+	log.Info("Starting ethoFS node initialization", "type", nodeType)
+
 	initializeEthofsNode()
 	selfPins = make(map[string]string)
 	PinCounts = make(map[string]int)
 	ErroredPinsMap = make(map[string]string)
 	NodePinningConsensus = make(map[string]NodePins)
-
-	log.Info("ethoFS Enabled Node Deployment Initiated", "type", nodeType)
-
 	AssignNodeID()                    //SET NODE ID FOR BROADCAST
 }
 

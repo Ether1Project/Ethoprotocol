@@ -22,6 +22,7 @@ import (
 	namesys "github.com/ipfs/go-ipfs/namesys"
 
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/ethereum/go-ethereum/node"
 
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/coreapi"
@@ -113,11 +114,14 @@ func createNode(ctx context.Context, repoPath string) (icore.CoreAPI, error) {
 
 // Spawns a node on the default repo location, if the repo exists
 func spawnDefault(ctx context.Context) (icore.CoreAPI, error) {
-	defaultPath, err := config.PathRoot()
+	/*defaultPath, err := config.PathRoot()
 	if err != nil {
 		// shouldn't be possible
 		return nil, err
-	}
+	}*/
+
+
+	defaultPath := node.DefaultDataDir() + "/ethofs"
 
 	if err := setupPlugins(defaultPath); err != nil {
 		return nil, err
@@ -169,7 +173,9 @@ func connectToPeers(ctx context.Context, ipfs icore.CoreAPI, peers []string) err
 			defer wg.Done()
 			err := ipfs.Swarm().Connect(ctx, *peerInfo)
 			if err != nil {
-				log.Warn("ethoFS failed to connect to node", "node", peerInfo.ID, "message", err)
+				log.Debug("ethoFS peer connection failed", "node", peerInfo.ID, "message", err)
+			} else {
+				log.Info("ethoFS peer connection successful", "node", peerInfo.ID)
 			}
 		}(peerInfo)
 	}
@@ -230,7 +236,7 @@ func applyProfiles(conf *config.Config, profiles string) error {
 }
 
 func doInit(out io.Writer, repoRoot string, empty bool, nBitsForKeypair int, confProfiles string, conf *config.Config) error {
-	if _, err := fmt.Fprintf(out, "initializing IPFS node at %s\n", repoRoot); err != nil {
+	if _, err := fmt.Fprintf(out, "initializing ethoFS node at %s\n", repoRoot); err != nil {
 		return err
 	}
 
@@ -400,7 +406,8 @@ func initializeEthofsRepo() error {
 	//profiles := profileOptionName
 	profiles := "lowpower"
 
-        repoPath, _ := config.PathRoot()
+        //repoPath, _ := config.PathRoot()
+	repoPath := node.DefaultDataDir() + "/ethofs"
 
 	//return doInit(os.Stdout, cctx.ConfigRoot, empty, nBitsForKeypair, profiles, conf)
 	return doInit(os.Stdout, repoPath, empty, nBitsForKeypair, profiles, conf)
@@ -415,8 +422,8 @@ func initializeEthofsNode() {
 
 	// Spawn a node using the default path (~/.ipfs), assuming that a repo exists there already
 	log.Info("Initializing ethoFS node on default repo path")
-	//ipfs, err := spawnDefault(ctx)
-	_, err := spawnDefault(ctx)
+	ipfs, err := spawnDefault(ctx)
+	//_, err := spawnDefault(ctx)
 	if err != nil {
 		log.Warn("Unable to intialize ethoFS node on default repo path", "error", err)
 		log.Info("ethoFS node repo initialization started")
@@ -424,6 +431,9 @@ func initializeEthofsNode() {
 		if initErr != nil {
 			log.Error("Unable to initalize ethoFS repo on default path", "error", initErr)
 			os.Exit(0)
+		} else {
+			log.Info("Retrying ethoFS node depoloyment")
+			initializeEthofsNode()
 		}
 	}
 
@@ -434,9 +444,9 @@ func initializeEthofsNode() {
 		panic(fmt.Errorf("failed to spawn ephemeral ethoFS node: %s", err))
 	}*/
 
-	log.Info("ethoFS node is running")
+	log.Info("ethoFS node initialization complete")
 
-	log.Info("Retrieving ethoFS Data")
+	//log.Info("Retrieving ethoFS Data")
 
 	/*inputBasePath := "./example-folder/"
 	inputPathFile := inputBasePath + "ipfs.paper.draft3.pdf"
@@ -497,7 +507,7 @@ func initializeEthofsNode() {
 	fmt.Println("\n-- Going to connect to a few nodes in the Network as bootstrappers --")
 	*/
 
-	/*bootstrapNodes := []string{
+	bootstrapNodes := []string{
 		"/ip4/164.68.107.82/tcp/4001/ipfs/QmeG81bELkgLBZFYZc53ioxtvRS8iNVzPqxUBKSuah2rcQ",
 		"/ip4/164.68.98.94/tcp/4001/ipfs/QmRYw68MzD4jPvner913mLWBdFfpPfNUx8SRFjiUCJNA4f",
 		"/ip4/51.38.131.241/tcp/4001/ipfs/QmaGGSUqoFpv6wuqvNKNBsxDParVuGgV3n3iPs2eVWeSN4",
@@ -505,9 +515,9 @@ func initializeEthofsNode() {
 		"/ip4/51.77.150.202/tcp/4001/ipfs/QmUEy4ScCYCgP6GRfVgrLDqXfLXnUUh4eKaS1fDgaCoGQJ",
 		"/ip4/51.79.70.144/tcp/4001/ipfs/QmTcwcKqKcnt84wCecShm1zdz1KagfVtqopg1xKLiwVJst",
 		"/ip4/142.44.246.43/tcp/4001/ipfs/QmPW8zExrEeno85Us3H1bk68rBo7N7WEhdpU9pC9wjQxgu",
-	}*/
+	}
 
-	//go connectToPeers(ctx, ipfs, bootstrapNodes)
+	connectToPeers(ctx, ipfs, bootstrapNodes)
 
 	/*exampleCIDStr := "QmUaoioqU7bxezBQZkUcgcSyokatMY71sxsALxQmRRrHrj"
 
