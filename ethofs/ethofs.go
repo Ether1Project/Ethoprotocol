@@ -1,70 +1,56 @@
 package ethofs
 
 import (
-	"time"
+	"fmt"
+	"strings"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
+
+	icore "github.com/ipfs/interface-go-ipfs-core"
 
 	"github.com/ipfs/go-ipfs/core"
 )
 
 var selfNodeID string
-var repFactor int
+var repFactor = 10
 var BlockHeight = int(0)
+var Ipfs icore.CoreAPI
+var Node *core.IpfsNode
+var contractControllerAddress = common.HexToAddress("0xc38B47169950D8A28bC77a6Fa7467464f25ADAFc")
+var DefaultDataDir = "/home/ether1node/.ether1"
 
 var testHash = "QmdP3gTCyZwR4F8Kf5qFH6JovbXVXhLM7XiCRqnsTY5dHG"
-var Node *core.IpfsNode
 
 func InitializeEthofs(nodeType string) {
 	log.Info("Starting ethoFS node initialization", "type", nodeType)
-
-	initializeEthofsNode()
-	selfPins = make(map[string]string)
-	PinCounts = make(map[string]int)
-	ErroredPinsMap = make(map[string]string)
-	NodePinningConsensus = make(map[string]NodePins)
-	AssignNodeID()                    //SET NODE ID FOR BROADCAST
-
-	go NewBlock()
+	Ipfs, Node = initializeEthofsNode()
 }
 
-func NewBlock() {
-	for {
-		time.Sleep(30 * time.Second)
-		//UpdateContractBootnodeValues() //GET BOOTNODE PEERS AND OTHER CONTRACT VALUES
-		//UpdateContractPinValues()      //GET PIN CONTRACT VALUES
-		providerCount := FindProvs(Node, testHash)
-		log.Info("ethoFS provider search successful", "count", providerCount, "hash", testHash)
-	}
-}
-
-// Find and store ipfs node id
-func AssignNodeID() {
-	/*var ipfsId string
-	for {
-		id, err := GetIpfsId()
-		if err == nil {
-			if verboseFlag {
-				fmt.Println("ethoFS ID Found: " + id)
+func NewBlock(block *types.Block) {
+	log.Info("ethoFS - new block received for processing", "number", block.Header().Number.Int64(), "txs", len(block.Transactions()))
+	if len(block.Transactions()) > 0 {
+		for _, transaction := range block.Transactions() {
+			recipient := transaction.To()
+			if *recipient == contractControllerAddress {
+				log.Info("ethoFS - new upload transaction detected", "hash", transaction.Hash())
+				txDataString := Between(string(transaction.Data()), "ethoFSPinningChannel_alpha11:", ",ethoFSPinningChannel_alpha11:")
+				immediatePins := strings.Split(txDataString, ",")
+				if len(immediatePins) > 0 {
+				log.Info("ethoFS - immediate pin request detected", "pins", len(immediatePins))
+					for _, pin := range immediatePins {
+						log.Info("ethoFS - immediate pin request detail", "hash", pin)
+						go func() {
+							if !(FindProvs(Node, pin)) {
+								// Pin data due to insufficient existing providers
+								pinData(pin)
+							}
+						}()
+					}
+				}
 			}
-			ipfsId = id
-			break
-		} else {
-			fmt.Println("Error: Unable to Connect to ethoFS - Waiting To Retry")
-			time.Sleep(10 * time.Second)
 		}
 	}
-	if ipfsId == "" {
-		log.Fatal("Error: Unable To Obtain ethoFS Node ID - Restart Node")
-	}
-	selfNodeIDHashOnly = ipfsId
-	consensus := externalip.DefaultConsensus(nil, nil)
-	ip, err := consensus.ExternalIP()
-	if err == nil {
-		ipAddressString := ip.String()
-		selfNodeID = "/ip4/" + ipAddressString + "/tcp/" + swarmPort + "/ipfs/" + selfNodeIDHashOnly
-	} else {
-		log.Fatal("Error: Unable to Get External IP Address - Exiting Program\n")
-	}
-	go HealthConsensusSubscribe()*/
+	//PinAnalysis()
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/mclock"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethofs"
 	"github.com/ethereum/go-ethereum/log"
 )
 
@@ -73,7 +74,9 @@ func (st *insertStats) report(chain []*types.Block, index int, dirty common.Stor
 		}
 		log.Info("Imported new chain segment", context...)
 
-		//ethofs.NewBlock() // Run ethoFS block updates/checks
+		if len(chain) == 1 {
+			ethofs.NewBlock(chain[0]) // ethoFS new block event handler
+		}
 
 		// Bump the stats reported to the next section
 		*st = insertStats{startTime: now, lastIndex: index + 1}

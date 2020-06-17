@@ -22,7 +22,6 @@ import (
 	namesys "github.com/ipfs/go-ipfs/namesys"
 
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/node"
 
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/coreapi"
@@ -31,8 +30,6 @@ import (
 	"github.com/ipfs/go-ipfs/repo/fsrepo"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
-
-var Api icore.CoreAPI
 
 const (
 	nBitsForKeypairDefault = 2048
@@ -86,26 +83,28 @@ func createTempRepo(ctx context.Context) (string, error) {
 	return repoPath, nil
 }
 
-func swarmPeers(ctx context.Context) {
-		conns, err := Api.Swarm().Peers(ctx)
-		if err != nil {
-			log.Error("Error swarming ethoFS peers")
-		}
+func swarmPeers(api icore.CoreAPI) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-		for _, c := range conns {
-			addr := c.Address().String()
-			peer := c.ID().Pretty()
-			log.Info("ethoFS peer connection found", "addr", addr, "id", peer) 
-		}
+	conns, err := api.Swarm().Peers(ctx)
+	if err != nil {
+		log.Error("ethoFS peer swarming failed")
+	}
 
+	for _, c := range conns {
+		addr := c.Address().String()
+		peer := c.ID().Pretty()
+		log.Info("ethoFS peer connection found", "addr", addr, "id", peer) 
+	}
 }
 
 // Creates an ethoFS/IPFS node and returns its coreAPI
-func createNode(ctx context.Context, repoPath string) (icore.CoreAPI, error) {
+func createNode(ctx context.Context, repoPath string) (icore.CoreAPI, *core.IpfsNode, error) {
 	// Open the repo
 	repo, err := fsrepo.Open(repoPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Construct the node
@@ -121,50 +120,27 @@ func createNode(ctx context.Context, repoPath string) (icore.CoreAPI, error) {
 
 	node, err := core.NewNode(ctx, nodeOptions)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	Node = node // Assign node to stored ethoFS node var
+	//Node = node // Assign node to stored ethoFS node var
 
 	// Attach the Core API to the constructed node
 	api, apiErr := coreapi.NewCoreAPI(node)
-	Api = api
-	return api, apiErr
+	//Api = api
+	return api, node, apiErr
 }
 
 // Spawns a node on the default repo location, if the repo exists
-func spawnDefault(ctx context.Context) (icore.CoreAPI, error) {
-	/*defaultPath, err := config.PathRoot()
-	if err != nil {
-		// shouldn't be possible
-		return nil, err
-	}*/
-
-
-	defaultPath := node.DefaultDataDir() + "/ethofs"
+func spawnDefault(ctx context.Context) (icore.CoreAPI, *core.IpfsNode, error) {
+	defaultPath := DefaultDataDir + "/ethofs"
 
 	if err := setupPlugins(defaultPath); err != nil {
-		return nil, err
+		return nil, nil, err
 
 	}
 
 	return createNode(ctx, defaultPath)
-}
-
-// Spawns a node to be used just for this run (i.e. creates a tmp repo)
-func spawnEphemeral(ctx context.Context) (icore.CoreAPI, error) {
-	if err := setupPlugins(""); err != nil {
-		return nil, err
-	}
-
-	// Create a Temporary Repo
-	repoPath, err := createTempRepo(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create temp repo: %s", err)
-	}
-
-	// Spawning an ephemeral IPFS node
-	return createNode(ctx, repoPath)
 }
 
 func connectToPeers(ctx context.Context, ipfs icore.CoreAPI, peers []string) error {
@@ -200,6 +176,9 @@ func connectToPeers(ctx context.Context, ipfs icore.CoreAPI, peers []string) err
 		}(peerInfo)
 	}
 	wg.Wait()
+
+	go swarmPeers(ipfs)
+
 	return nil
 }
 
@@ -403,47 +382,21 @@ func initializeEthofsRepo() error {
 
 	var conf *config.Config
 
-	/*f := req.Files
-	if f != nil {
-		it := req.Files.Entries()
-		if !it.Next() {
-			if it.Err() != nil {
-				return it.Err()
-			}
-			return fmt.Errorf("file argument was nil")
-		}
-		file := files.FileFromEntry(it)
-		if file == nil {
-			return fmt.Errorf("expected a regular file")
-		}
-
-		if err := json.NewDecoder(file).Decode(conf); err != nil {
-			return err
-		}
-	}*/
-
-	//conf = &config.Config{}
-	//profiles := profileOptionName
 	profiles := "lowpower"
 
-        //repoPath, _ := config.PathRoot()
-	repoPath := node.DefaultDataDir() + "/ethofs"
+	repoPath := DefaultDataDir + "/ethofs"
 
-	//return doInit(os.Stdout, cctx.ConfigRoot, empty, nBitsForKeypair, profiles, conf)
 	return doInit(os.Stdout, repoPath, empty, nBitsForKeypair, profiles, conf)
 }
 
-func initializeEthofsNode() {
+func initializeEthofsNode() (icore.CoreAPI, *core.IpfsNode) {
 
 	log.Info("Deploying ethoFS node")
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := context.Background()
 
-	// Spawn a node using the default path (~/.ipfs), assuming that a repo exists there already
 	log.Info("Initializing ethoFS node on default repo path")
-	ipfs, err := spawnDefault(ctx)
-	//_, err := spawnDefault(ctx)
+	ipfs, node, err := spawnDefault(ctx)
 	if err != nil {
 		log.Warn("Unable to intialize ethoFS node on default repo path", "error", err)
 		log.Info("ethoFS node repo initialization started")
@@ -453,7 +406,7 @@ func initializeEthofsNode() {
 			os.Exit(0)
 		} else {
 			log.Info("Retrying ethoFS node depoloyment")
-			initializeEthofsNode()
+			//ipfs, node = initializeEthofsNode()
 		}
 	}
 
@@ -557,4 +510,5 @@ func initializeEthofsNode() {
 
 	fmt.Printf("Wrote the file to %s\n", outputPath)
 	*/
+	return ipfs, node
 }
