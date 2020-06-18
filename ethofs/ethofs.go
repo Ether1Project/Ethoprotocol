@@ -1,7 +1,7 @@
 package ethofs
 
 import (
-	"fmt"
+	//"fmt"
 	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -40,12 +40,24 @@ func NewBlock(block *types.Block) {
 				if len(immediatePins) > 0 {
 				log.Info("ethoFS - immediate pin request detected", "pins", len(immediatePins))
 					for _, pin := range immediatePins {
+						pin = testHash
 						log.Info("ethoFS - immediate pin request detail", "hash", pin)
 						go func() {
-							if !(FindProvs(Node, pin)) {
+							//if !(FindProvs(Node, pin)) {
 								// Pin data due to insufficient existing providers
-								pinData(pin)
-							}
+								addedPin, err := pinAdd(Ipfs, pin)
+								if err != nil {
+									log.Error("ethoFS - pin add error", "hash", pin, "error", err)
+								} else {
+									log.Info("ethoFS - pin add successful", "hash", addedPin)
+								}
+								_, err = pinSearch(Ipfs, pin)
+								if err != nil {
+									log.Error("ethoFS - pin search error", "error", err)
+								} else {
+									log.Info("ethoFS - pin search successful")
+								}
+							//}
 						}()
 					}
 				}

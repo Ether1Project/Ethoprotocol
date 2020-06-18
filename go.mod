@@ -35,12 +35,18 @@ require (
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/huin/goupnp v1.0.0
 	github.com/influxdata/influxdb v1.2.3-0.20180221223340-01288bdb0883
+	github.com/ipfs/go-blockservice v0.1.3
 	github.com/ipfs/go-cid v0.0.6
+	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-ipfs v0.6.0-rc6
 	github.com/ipfs/go-ipfs-api v0.0.3
+	github.com/ipfs/go-ipfs-blockstore v0.1.4
 	github.com/ipfs/go-ipfs-cmds v0.2.9
 	github.com/ipfs/go-ipfs-config v0.7.2
+	github.com/ipfs/go-ipfs-exchange-offline v0.0.1
 	github.com/ipfs/go-ipfs-files v0.0.8
+	github.com/ipfs/go-ipfs-pinner v0.0.4
+	github.com/ipfs/go-merkledag v0.3.2
 	github.com/ipfs/interface-go-ipfs-core v0.3.0
 	github.com/jackpal/go-nat-pmp v1.0.2
 	github.com/julienschmidt/httprouter v1.2.0
