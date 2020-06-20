@@ -37,6 +37,7 @@ require (
 	github.com/influxdata/influxdb v1.2.3-0.20180221223340-01288bdb0883
 	github.com/ipfs/go-blockservice v0.1.3
 	github.com/ipfs/go-cid v0.0.6
+	github.com/ipfs/go-cidutil v0.0.2
 	github.com/ipfs/go-datastore v0.4.4
 	github.com/ipfs/go-ipfs v0.6.0-rc6
 	github.com/ipfs/go-ipfs-api v0.0.3

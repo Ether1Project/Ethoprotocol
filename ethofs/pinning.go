@@ -2,7 +2,6 @@ package ethofs
 
 import (
 	"context"
-	//"fmt"
 	"time"
 
 	"github.com/ethereum/go-ethereum/log"
@@ -33,10 +32,12 @@ func pinSearch(api coreiface.CoreAPI, hash string) (bool, error) {
 	}
 
 	for p := range pins {
-		log.Debug("ethoFS - pin found", "type", p.Type(), "hash", p.Path().Cid())
-		if cid == p.Path().Cid() {
-			log.Info("ethoFS - pin match found", "type", p.Type(), "hash", p.Path().Cid())
-			return true, nil
+		if p != nil && p.Path() != nil {
+			log.Debug("ethoFS - pin found", "type", p.Type(), "hash", p.Path().Cid())
+			if cid == p.Path().Cid() {
+				log.Info("ethoFS - pin match found", "type", p.Type(), "hash", p.Path().Cid())
+				return true, nil
+			}
 		}
 	}
 	log.Info("ethoFS - pin match not found", "hash", cid)

@@ -2,7 +2,7 @@ package ethofs
 
 import (
 	"context"
-	//"fmt"
+	"fmt"
 	//"os/exec"
 	//"strings"
 	"time"
@@ -16,14 +16,13 @@ import (
 )
 
 // FindProvs is used to seek out providers of a specified ethoFS hash
-func FindProvs(node *core.IpfsNode, hash string) bool {
+func FindProvs(node *core.IpfsNode, hash string) (uint64, error) {
 
 	if !node.IsOnline {
-		log.Error("Unable to find providers - ethoFS node is not online")
-		return false
-	} else {
-		log.Info("ethoFS provider search initiated", "hash", hash)
+		return 0, fmt.Errorf("Unable to find providers - ethoFS node is not online")
 	}
+
+	log.Info("ethoFS provider search initiated", "hash", hash)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
@@ -31,7 +30,7 @@ func FindProvs(node *core.IpfsNode, hash string) bool {
 
 	c, _ := cid.Parse(hash)
 
-	pchan := node.Routing.FindProvidersAsync(ctx, c, (repFactor * 2))
+	pchan := node.Routing.FindProvidersAsync(ctx, c, int(repFactor * 2))
 
 	go func() {
 	 	defer cancel()
@@ -45,17 +44,14 @@ func FindProvs(node *core.IpfsNode, hash string) bool {
 	}()
 	for e := range events {
 		for _, provData := range e.Responses {
-			log.Debug("ethoFS data provider found", "hash", hash, "node", provData.ID)
+			log.Debug("ethoFS - data provider found", "hash", hash, "node", provData.ID)
 		}
-		if len(e.Responses) >= repFactor {
-			log.Info("ethoFS provider search completed - sufficient providers found", "hash", hash)
-			return true
-		}
+		log.Info("ethoFS - provider search completed", "providers", len(e.Responses), "hash", hash)
+		return uint64(len(e.Responses)), nil
 	}
 
 	select {
 		case <-ctx.Done():
-			log.Info("ethoFS provider search completed - insufficient providers found", "hash", hash)
-			return false
+			return 0, fmt.Errorf("ethoFS provider search completed unsuccessfully")
 	}
 }

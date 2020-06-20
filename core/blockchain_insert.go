@@ -22,9 +22,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/mclock"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethofs"
+	//"github.com/ethereum/go-ethereum/ethofs"
 	"github.com/ethereum/go-ethereum/log"
 )
+
+// block communication channel declaration
+var blockCommunication chan<- *types.Block
 
 // insertStats tracks and reports on block insertion.
 type insertStats struct {
@@ -75,12 +78,23 @@ func (st *insertStats) report(chain []*types.Block, index int, dirty common.Stor
 		log.Info("Imported new chain segment", context...)
 
 		if len(chain) == 1 {
-			ethofs.NewBlock(chain[0]) // ethoFS new block event handler
+			//ethofs.NewBlock(chain[0]) // ethoFS new block event handler
+			sendNewBlockCommunication(chain[0])
 		}
 
 		// Bump the stats reported to the next section
 		*st = insertStats{startTime: now, lastIndex: index + 1}
 	}
+}
+
+// Initialize new block comms
+func InitializeBlockCommunication(newBlockReceiptChannel chan<- *types.Block) {
+	blockCommunication = newBlockReceiptChannel
+}
+
+// Send new block using comms
+func sendNewBlockCommunication(block *types.Block) {
+	blockCommunication <- block
 }
 
 // insertIterator is a helper to assist during chain import.

@@ -3,6 +3,8 @@ package ethofs
 import (
 	"strings"
 	"unsafe"
+
+	cid "github.com/ipfs/go-cidutil"
 )
 
 func ByteSliceToString(bs []byte) string {
@@ -24,4 +26,18 @@ func Between(value string, a string, b string) string {
 		return ""
 	}
 	return value[posFirstAdjusted:posLast]
+}
+
+func scanForCids(data []byte) []string {
+	var cidArray []string
+	i, j, _, pin := cid.ScanForCid(data)
+	for i != j {
+		cidArray = append(cidArray, pin)
+		if j >= (len(data) - 1) {
+			return cidArray
+		}
+		data = data[j:(len(data) - 1)]
+		i, j, _, pin = cid.ScanForCid(data)
+	}
+	return cidArray
 }

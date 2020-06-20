@@ -133,7 +133,7 @@ func createNode(ctx context.Context, repoPath string) (icore.CoreAPI, *core.Ipfs
 
 // Spawns a node on the default repo location, if the repo exists
 func spawnDefault(ctx context.Context) (icore.CoreAPI, *core.IpfsNode, error) {
-	defaultPath := DefaultDataDir + "/ethofs"
+	defaultPath := defaultDataDir + "/ethofs"
 
 	if err := setupPlugins(defaultPath); err != nil {
 		return nil, nil, err
@@ -384,7 +384,7 @@ func initializeEthofsRepo() error {
 
 	profiles := "lowpower"
 
-	repoPath := DefaultDataDir + "/ethofs"
+	repoPath := defaultDataDir + "/ethofs"
 
 	return doInit(os.Stdout, repoPath, empty, nBitsForKeypair, profiles, conf)
 }

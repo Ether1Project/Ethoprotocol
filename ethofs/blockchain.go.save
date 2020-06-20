@@ -1,0 +1,194 @@
+package ethofs
+
+import (
+	"bytes"
+	"context"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/log"
+	"github.com/mitchellh/go-homedir"
+	"math/big"
+	"io"
+	"runtime"
+	"strings"
+	"time"
+
+	"github.com/ipfs/go-ipfs-files"
+	cid "github.com/ipfs/go-cid"
+	path "github.com/ipfs/interface-go-ipfs-core/path"
+)
+
+func updatePinContractValues(ContractPinTrackingMap map[string][]string) error {
+	internalContractPinTrackingMap := make(map[string][]string)
+	c, err := ethclient.Dial(ipcLocation)
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	//ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	//if c != nil && ctx != nil {
+	address := common.HexToAddress("0xD3b80c611999D46895109d75322494F7A49D742F")
+	contract, err := NewPinStorage(address, c)
+	if err != nil {
+		return err
+	}
+	repFactorResp, err := contract.ReplicationFactor(nil)
+	if err != nil {
+		return err
+	}
+	pinCountResp, err := contract.PinCount(nil)
+	if err != nil {
+		return err
+	}
+
+	var contractPinArray []string
+	for j := uint64(0); j < uint64(pinCountResp); j++ {
+		i := new(big.Int).SetUint64(j)
+		contractPin, err := contract.Pins(nil, i)
+		if err != nil {
+			log.Warn("ethoFS - ether-1 contract connection error (contract pin)", "error",  err, "number", i)
+			continue
+		}
+		/*if _, ok := localPinTrackingMap[contractPin]; ok {
+			log.Warn("ethoFS - data already pinned to local node", "hash", contractPin)
+		}*/
+
+		cid, err := cid.Parse(ContractPin)
+        	if err != nil {
+                	log.Warn("ethoFS - ether-1 contract connection error (cid parse)", "error",  err)
+			continue
+		}
+		// Request serialized pin list stored on ethoFS
+		resolvedPath := path.IpfsPath(cid)
+		resp, err := Ipfs.Unixfs().Get(ctx, resolvedPath)
+		if err != nil {
+			log.Warn("ethoFS - data retrieval error", "hash", cid, "error", err)
+			continue
+		}
+		var file files.File
+		file = files.ToFile(resp)
+		var r io.Reader = file
+		if r [= nil {
+			continue
+		}
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(r)
+		catString := buf.String()
+		cids := scanForCids(catString)
+
+		for pin := range cids {
+			log.Info("ethoFS - immediate pin request detail", "hash", pin)
+			pinned, err = pinSearch(Ipfs, pin)
+			if err != nil {
+                            	log.Error("ethoFS - pin search error", "error", err)
+			} else {
+				log.Info("ethoFS - pin search successful")
+				}
+
+
+			if !(FindProvs(Node, pin)) {
+				// Pin data due to insufficient existing providers
+				addedPin, err := pinAdd(Ipfs, pin)
+				if err != nil {
+					log.Error("ethoFS - pin add error", "hash", pin, "error", err)
+				} else {
+					log.Info("ethoFS - pin add successful", "hash", addedPin)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+/*func GetPinContractValues(ContractPinTrackingMap map[string][]string) map[string][]string {
+	var location string
+	if runtime.GOOS == "linux" {
+		location = "/.ether1/geth.ipc"
+	} else if runtime.GOOS == "windows" {
+		location = "\\AppData\\Roaming\\Ether1\\geth.ipc"
+	} else if runtime.GOOS == "darwin" {
+		location = "/Library/Ether1/geth.ipc"
+	}
+	InternalContractPinTrackingMap := make(map[string][]string)
+	homedirectory, _ := homedir.Dir()
+	c, _ := ethclient.Dial(homedirectory + location)
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	if c != nil && ctx != nil {
+		address := common.HexToAddress("0xD3b80c611999D46895109d75322494F7A49D742F")
+		contract, err := NewPinStorage(address, c)
+		if err != nil {
+			log.Warn("ethoFS - ether-1 contract connection error", "error", err)
+		} else {
+			ReplicationFactor, err := contract.ReplicationFactor(nil)
+			if err != nil {
+				log.Warn("ethoFS - ether-1 contract connection error (replication factor)", "error",  err)
+			} else {
+				repFactor = int(ReplicationFactor)
+			}
+			PinCount, err := contract.PinCount(nil)
+			if err != nil {
+				log.Warn("ethoFS - ether-1 contract connection error (pin count)", "error",  err)
+			} else {
+				var ContractPinArray []string
+				for j := uint64(0); j < uint64(PinCount); j++ {
+					i := new(big.Int).SetUint64(j)
+					ContractPin, err := contract.Pins(nil, i)
+					if err != nil {
+						log.Warn("ethoFS - ether-1 contract connection error (contract pin)", "error",  err)
+					} else {
+						if _, ok := ContractPinTrackingMap[ContractPin]; ok {
+							var tempPinArray []string
+							for l := uint64(0); uint64(len(ContractPinTrackingMap[ContractPin])) > l; l++ {
+								ContractPinArray = append(ContractPinArray, ContractPinTrackingMap[ContractPin][l])
+								tempPinArray = append(tempPinArray, ContractPinTrackingMap[ContractPin][l])
+							}
+							InternalContractPinTrackingMap[ContractPin] = tempPinArray
+						} else {
+							ContractPinArray = append(ContractPinArray, ContractPin)
+
+							cid, err := cid.Parse(ContractPin)
+        						if err != nil {
+                						log.Warn("ethoFS - ether-1 contract connection error (cid parse)", "error",  err)
+        						} else {
+								// Request serialized pin list stored on ethoFS
+								resolvedPath := path.IpfsPath(cid)
+								resp, err := Ipfs.Unixfs().Get(ctx, resolvedPath)
+								if err != nil {
+									log.Warn("ethoFS - data retrieval error", "hash", cid, "error", err)
+								} else {
+									var file files.File
+									file = files.ToFile(resp)
+									var r io.Reader = file
+									buf := new(bytes.Buffer)
+									if r != nil {
+										buf.ReadFrom(r)
+										catString := buf.String()
+										IPFSPinListArray := strings.Split(catString, ":")
+										var tempPinArray []string
+										if len(IPFSPinListArray) > 1 {
+											if IPFSPinListArray[0] == mainChannelString {
+												for k := uint64(1); k < uint64(len(IPFSPinListArray)); k++ {
+													tempPinArray = append(tempPinArray, IPFSPinListArray[k])
+													ContractPinArray = append(ContractPinArray, IPFSPinListArray[k])
+												}
+											}
+										}
+										InternalContractPinTrackingMap[ContractPin] = tempPinArray
+									} else {
+										log.Warn("ethoFS data retrieval error (undefined data)", "hash", cid)
+									}
+								}
+							}
+						}
+					}
+				}
+				MasterPinArray = ContractPinArray
+			}
+		}
+		c.Close()
+	}
+	return InternalContractPinTrackingMap
+}
+*/

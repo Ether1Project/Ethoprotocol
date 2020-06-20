@@ -34,6 +34,8 @@ import (
 	"github.com/ethereum/go-ethereum/cmd/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/console"
+	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/eth"
 	"github.com/ethereum/go-ethereum/ethofs"
 	"github.com/ethereum/go-ethereum/eth/downloader"
@@ -356,7 +358,9 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 
 	// Check for ethoFS enabled node and initalize accordingly
 	if ctx.GlobalString(utils.EthofsFlag.Name) == "gn" || ctx.GlobalString(utils.EthofsFlag.Name) == "mn" || ctx.GlobalString(utils.EthofsFlag.Name) == "sn" {
-		ethofs.InitializeEthofs(ctx.GlobalString(utils.EthofsFlag.Name))
+		blockCommunication := make(chan *types.Block)
+		core.InitializeBlockCommunication(blockCommunication)
+		ethofs.InitializeEthofs(ctx.GlobalString(utils.EthofsFlag.Name), blockCommunication)
 	}
 
 	go func() {
