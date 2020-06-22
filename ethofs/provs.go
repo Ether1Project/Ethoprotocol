@@ -22,7 +22,7 @@ func FindProvs(node *core.IpfsNode, hash string) (uint64, error) {
 		return 0, fmt.Errorf("Unable to find providers - ethoFS node is not online")
 	}
 
-	log.Info("ethoFS provider search initiated", "hash", hash)
+	log.Debug("ethoFS provider search initiated", "hash", hash)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 
@@ -46,7 +46,7 @@ func FindProvs(node *core.IpfsNode, hash string) (uint64, error) {
 		for _, provData := range e.Responses {
 			log.Debug("ethoFS - data provider found", "hash", hash, "node", provData.ID)
 		}
-		log.Info("ethoFS - provider search completed", "providers", len(e.Responses), "hash", hash)
+		log.Debug("ethoFS - provider search completed", "providers", len(e.Responses), "hash", hash)
 		return uint64(len(e.Responses)), nil
 	}
 

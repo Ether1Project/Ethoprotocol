@@ -35,12 +35,12 @@ func pinSearch(api coreiface.CoreAPI, hash string) (bool, error) {
 		if p != nil && p.Path() != nil {
 			log.Debug("ethoFS - pin found", "type", p.Type(), "hash", p.Path().Cid())
 			if cid == p.Path().Cid() {
-				log.Info("ethoFS - pin match found", "type", p.Type(), "hash", p.Path().Cid())
+				log.Debug("ethoFS - pin match found", "type", p.Type(), "hash", p.Path().Cid())
 				return true, nil
 			}
 		}
 	}
-	log.Info("ethoFS - pin match not found", "hash", cid)
+	log.Debug("ethoFS - pin match not found", "hash", cid)
 	return false, nil
 }
 

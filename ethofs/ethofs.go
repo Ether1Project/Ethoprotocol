@@ -51,9 +51,9 @@ func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
 	go func() {
 		err := updatePinContractValues()
 		if err != nil {
-			log.Error("ethoFS - error updating pin contract values")
+			log.Debug("ethoFS - error updating pin contract values")
 		} else {
-			log.Info("ethoFS - pin contract value update successful")
+			log.Debug("ethoFS - pin contract value update successful")
 		}
 	}()
 	// Initialize block listener
@@ -72,10 +72,13 @@ func BlockListener(blockCommunication chan *types.Block) {
 				go func() {
 					err := updatePinContractValues()
 					if err != nil {
-						log.Error("ethoFS - error updating pin contract values")
+						log.Debug("ethoFS - error updating pin contract values")
 					} else {
-						log.Info("ethoFS - pin contract value update successful")
+						log.Debug("ethoFS - pin contract value update successful")
 					}
+
+					// Initiate garbage collection
+					go gc(Node)
 				}()
 	        }
     	}
@@ -89,7 +92,7 @@ func CheckForUploads(transactions types.Transactions) {
 				log.Info("ethoFS - new upload transaction detected", "hash", transaction.Hash())
 				cids := scanForCids(transaction.Data())
 				for _, pin := range cids {
-					log.Info("ethoFS - immediate pin request detail", "hash", pin)
+					log.Debug("ethoFS - immediate pin request detail", "hash", pin)
 					/*if !(FindProvs(Node, pin)) {
 						// Pin data due to insufficient existing providers
 						addedPin, err := pinAdd(Ipfs, pin)
@@ -107,10 +110,10 @@ func CheckForUploads(transactions types.Transactions) {
 					}*/
 					pinned, err := pinSearch(Ipfs, pin)
                         		if err != nil {
-                                		log.Error("ethoFS - pin search error", "error", err)
+                                		log.Debug("ethoFS - pin search error", "error", err)
                                 		continue
                         		} else {
-                                		log.Info("ethoFS - data is pinned to local node", "hash", pin)
+                                		log.Debug("ethoFS - data is pinned to local node", "hash", pin)
                         		}
 
 					providerCount, err := FindProvs(Node, pin)
@@ -118,19 +121,19 @@ func CheckForUploads(transactions types.Transactions) {
                                 		// Pin data due to insufficient existing providers
                                 		addedPin, err := pinAdd(Ipfs, pin)
                                 		if err != nil {
-                                        		log.Error("ethoFS - pin add error", "hash", pin, "error", err)
+                                        		log.Debug("ethoFS - pin add error", "hash", pin, "error", err)
                                         		continue
                                 		} else {
-                                        		log.Info("ethoFS - pin add successful", "hash", addedPin)
+                                        		log.Debug("ethoFS - pin add successful", "hash", addedPin)
                                 		}
                         		} else if pinned && providerCount > (repFactor + (repFactor / uint64(2)))  {
                                 		// Pin data due to insufficient existing providers
                                 		removedPin, err := pinRemove(Ipfs, pin)
                                 		if err != nil {
-                                        		log.Error("ethoFS - pin remove error", "hash", pin, "error", err)
+                                        		log.Debug("ethoFS - pin remove error", "hash", pin, "error", err)
                                         		continue
                                 		} else {
-                                        		log.Info("ethoFS - pin removal successful", "hash", removedPin)
+                                        		log.Debug("ethoFS - pin removal successful", "hash", removedPin)
                                 		}
                         		}
 				}
