@@ -44,10 +44,8 @@ func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
         }
 
 	log.Info("Starting ethoFS node initialization", "type", nodeType)
-	Ipfs, Node = initializeEthofsNode()
+	Ipfs, Node = initializeEthofsNode(nodeType)
 
-	// Initialize pin tracking
-	//ContractPinTrackingMap := make(map[string][]string)
 	go func() {
 		err := updatePinContractValues()
 		if err != nil {
@@ -93,21 +91,6 @@ func CheckForUploads(transactions types.Transactions) {
 				cids := scanForCids(transaction.Data())
 				for _, pin := range cids {
 					log.Debug("ethoFS - immediate pin request detail", "hash", pin)
-					/*if !(FindProvs(Node, pin)) {
-						// Pin data due to insufficient existing providers
-						addedPin, err := pinAdd(Ipfs, pin)
-						if err != nil {
-							log.Error("ethoFS - pin add error", "hash", pin, "error", err)
-						} else {
-							log.Info("ethoFS - pin add successful", "hash", addedPin)
-						}
-						_, err = pinSearch(Ipfs, pin)
-						if err != nil {
-							log.Error("ethoFS - pin search error", "error", err)
-						} else {
-							log.Info("ethoFS - pin search successful")
-						}
-					}*/
 					pinned, err := pinSearch(Ipfs, pin)
                         		if err != nil {
                                 		log.Debug("ethoFS - pin search error", "error", err)

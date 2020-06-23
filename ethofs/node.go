@@ -29,6 +29,10 @@ import (
 	"github.com/ipfs/go-ipfs/plugin/loader"
 	"github.com/ipfs/go-ipfs/repo/fsrepo"
 	"github.com/libp2p/go-libp2p-core/peer"
+
+	sockets "github.com/libp2p/go-socket-activation"
+	manet "github.com/multiformats/go-multiaddr-net"
+	corehttp "github.com/ipfs/go-ipfs/core/corehttp"
 )
 
 const (
@@ -382,34 +386,171 @@ func initializeEthofsRepo() error {
 
 	var conf *config.Config
 
-	profiles := "lowpower"
+	//profiles := "lowpower"
+	profiles := "default-networking"
 
 	repoPath := defaultDataDir + "/ethofs"
 
 	return doInit(os.Stdout, repoPath, empty, nBitsForKeypair, profiles, conf)
 }
 
-func initializeEthofsNode() (icore.CoreAPI, *core.IpfsNode) {
+func configEthofsNode(node *core.IpfsNode, nodeType string) error {
+	r := node.Repo
+	cfg, err := r.Config()
+	if err != nil {
+		return err
+	}
 
-	log.Info("Deploying ethoFS node")
+	var storageMax string
+	var routingType string
+
+	if nodeType == "sn" {
+		storageMax = "16GB"
+		routingType = "dhtclient"
+	} else if nodeType == "mn" {
+		storageMax = "36GB"
+		routingType = "dht"
+	} else if nodeType == "gn" {
+		storageMax = "76GB"
+		routingType = "dht"
+		gatewayString := string("/ip4/0.0.0.0/tcp/80")
+		if err := r.SetConfigKey("Addresses.Gateway", gatewayString); err != nil {
+			return err
+		}
+		cfg.Addresses.Gateway = config.Strings{gatewayString}
+	}
+
+	if err := r.SetConfigKey("Datastore.StorageMax", storageMax); err != nil {
+		return err
+	}
+	cfg.Datastore.StorageMax = storageMax
+	if err := r.SetConfigKey("Routing.Type", routingType); err != nil {
+		return err
+	}
+	cfg.Routing.Type = routingType
+
+	return nil
+}
+
+func initializeGateway(node *core.IpfsNode) error {
+	r := node.Repo
+	cfg, err := r.Config()
+	if err != nil {
+		return err
+	}
+
+	listeners, err := sockets.TakeListeners("io.ipfs.gateway")
+	if err != nil {
+		return fmt.Errorf("serveHTTPGateway: socket activation failed: %s", err)
+	}
+
+	listenerAddrs := make(map[string]bool, len(listeners))
+	for _, listener := range listeners {
+		listenerAddrs[string(listener.Multiaddr().Bytes())] = true
+	}
+
+	writable := cfg.Gateway.Writable
+
+	gatewayAddrs := cfg.Addresses.Gateway
+	for _, addr := range gatewayAddrs {
+		gatewayMaddr, err := ma.NewMultiaddr(addr)
+		if err != nil {
+			return fmt.Errorf("serveHTTPGateway: invalid gateway address: %q (err: %s)", addr, err)
+		}
+
+		if listenerAddrs[string(gatewayMaddr.Bytes())] {
+			continue
+		}
+
+		gwLis, err := manet.Listen(gatewayMaddr)
+		if err != nil {
+			return fmt.Errorf("serveHTTPGateway: manet.Listen(%s) failed: %s", gatewayMaddr, err)
+		}
+		listenerAddrs[string(gatewayMaddr.Bytes())] = true
+		listeners = append(listeners, gwLis)
+	}
+
+	// we might have listened to /tcp/0 - let's see what we are listing on
+	gwType := "readonly"
+	if writable {
+		gwType = "writable"
+	}
+
+	for _, listener := range listeners {
+		log.Info("ethoFS - gateway initialized successfully", "type", gwType, "addr", listener.Multiaddr())
+	}
+
+	var opts = []corehttp.ServeOption{
+		corehttp.MetricsCollectionOption("gateway"),
+		corehttp.HostnameOption(),
+		corehttp.GatewayOption(writable, "/ipfs", "/ipns"),
+		corehttp.VersionOption(),
+		corehttp.CheckVersionOption(),
+		//corehttp.CommandsROOption(cmdctx),
+	}
+
+	if cfg.Experimental.P2pHttpProxy {
+		opts = append(opts, corehttp.P2PProxyOption())
+	}
+
+	if len(cfg.Gateway.RootRedirect) > 0 {
+		opts = append(opts, corehttp.RedirectOption("", cfg.Gateway.RootRedirect))
+	}
+
+	errc := make(chan error)
+	var wg sync.WaitGroup
+	for _, lis := range listeners {
+		wg.Add(1)
+		go func(lis manet.Listener) {
+			defer wg.Done()
+			errc <- corehttp.Serve(node, manet.NetListener(lis), opts...)
+		}(lis)
+	}
+
+	go func() {
+		wg.Wait()
+		close(errc)
+	}()
+
+	return nil
+}
+
+func initializeEthofsNode(nodeType string) (icore.CoreAPI, *core.IpfsNode) {
+
+	log.Info("ethoFS - deploying ethoFS node")
 
 	ctx := context.Background()
 
-	log.Info("Initializing ethoFS node on default repo path")
+	log.Info("ethoFS - initializing ethoFS node on default repo path")
 	ipfs, node, err := spawnDefault(ctx)
 	if err != nil {
-		log.Warn("Unable to intialize ethoFS node on default repo path", "error", err)
-		log.Info("ethoFS node repo initialization started")
+		log.Warn("ethoFS - unable to intialize ethoFS node on default repo path", "error", err)
+		log.Info("ethoFS - node repo initialization started")
 		initErr := initializeEthofsRepo()
 		if initErr != nil {
-			log.Error("Unable to initalize ethoFS repo on default path", "error", initErr)
+			log.Error("ethoFS - unable to initalize ethoFS repo on default path", "error", initErr)
 			os.Exit(0)
 		} else {
-			log.Info("Retrying ethoFS node depoloyment")
+			log.Info("ethoFS - retrying ethoFS node depoloyment")
 			//ipfs, node = initializeEthofsNode()
 		}
 	}
 
+	// Setup ethoFS node config defaults
+	err = configEthofsNode(node, nodeType)
+	if err != nil {
+		log.Warn("ethoFS - unable to set default node configuration", "error", err)
+	} else {
+		log.Info("ethoFS - node default configuration setup complete")
+	}
+
+	if nodeType == "gn" {
+		err = initializeGateway(node)
+		if err != nil {
+			log.Error("ethoFS - error initializing gateway", "error", err)
+			os.Exit(0)
+		}
+	}
 	// Spawn a node using a temporary path, creating a temporary repo for the run
 	/*log.Info("Spawning ethoFS node on a temporary repo")
 	ipfs, err := spawnEphemeral(ctx)
@@ -417,7 +558,7 @@ func initializeEthofsNode() (icore.CoreAPI, *core.IpfsNode) {
 		panic(fmt.Errorf("failed to spawn ephemeral ethoFS node: %s", err))
 	}*/
 
-	log.Info("ethoFS node initialization complete")
+	log.Info("ethoFS - node initialization complete")
 
 	//log.Info("Retrieving ethoFS Data")
 
