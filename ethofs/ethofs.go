@@ -2,6 +2,7 @@ package ethofs
 
 import (
 	//"fmt"
+	"math/rand"
 	"runtime"
 	//"strings"
 
@@ -75,8 +76,10 @@ func BlockListener(blockCommunication chan *types.Block) {
 						log.Debug("ethoFS - pin contract value update successful")
 					}
 
-					// Initiate garbage collection
-					go gc(Node)
+					if rand.Intn(100) > 95 {
+						// Initiate garbage collection randomly roughly every 20 blocks
+						go gc(Node)
+					}
 				}()
 	        }
     	}

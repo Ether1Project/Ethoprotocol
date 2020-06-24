@@ -12,19 +12,16 @@ import (
 )
 
 func gc(node *core.IpfsNode) {
-	ctx,_ := context.WithTimeout(context.Background(), 10*time.Second)
-
-	gcChan := corerepo.GarbageCollectAsync(node, ctx)
+	ctx,_ := context.WithTimeout(context.Background(), 100*time.Second)
 
 	log.Info("ethoFS - garbage collection initiated")
 
-	for {
-		select {
-			case gcResp := <-gcChan:
-				log.Info("ethoFS - garbage collection response received", "response", gcResp, "channel", gcChan)
-			case <-ctx.Done():
-				log.Info("ethoFS - grabage collection completed")
-				return
+	go func(node *core.IpfsNode, ctx context.Context) {
+		err := corerepo.GarbageCollect(node, ctx)
+		if err != nil {
+			log.Error("ethoFS - garbage collection error", "error", err)
+		} else {
+			log.Info("ethoFS - garbage collection completed")
 		}
-	}
+	}(node, ctx)
 }
