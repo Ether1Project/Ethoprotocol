@@ -85,15 +85,19 @@ func updatePinContractValues() error {
 
 			for _,pin := range cids {
 				log.Debug("ethoFS - pin request detail", "hash", pin, "number", i)
-				pinned, err := pinSearch(Ipfs, pin)
-				if err != nil {
-					log.Debug("ethoFS - pin search error", "error", err)
+				pinned := pinSearch(pin)
+				if !pinned {
+					log.Debug("ethoFS - pin search error", "error", "pin not found")
 					continue
 				} else {
 					log.Debug("ethoFS - data is pinned to local node", "hash", pin)
 				}
 
 				providerCount, err := FindProvs(Node, pin)
+				if err != nil {
+					log.Warn("ethoFS - provider search error", "error", err)
+					continue
+				}
 
 				// For testing
 				//log.Info("ethoFS - replication factor comparisons", "low", (repFactor / uint64(2)), "high", (repFactor + (repFactor / uint64(2))))

@@ -12,8 +12,33 @@ import (
 	path "github.com/ipfs/interface-go-ipfs-core/path"
 )
 
-func pinSearch(api coreiface.CoreAPI, hash string) (bool, error) {
+func updateLocalPinMapping(api coreiface.CoreAPI) error {
+
+	localPinMapping = make(map[string]string)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	opt, err := options.Pin.Ls.Type("all")
+	if err != nil {
+		return err
+	}
+
+	pins, err := api.Pin().Ls(ctx, opt)
+	if err != nil {
+		return err
+	}
+
+	for p := range pins {
+		if p != nil && p.Path() != nil {
+			localPinMapping[p.Path().Cid().String()] = p.Type()
+		}
+	}
+	return nil
+}
+
+func pinSearch(hash string) bool {
+	/*ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	cid, err := cid.Parse(hash)
@@ -39,9 +64,14 @@ func pinSearch(api coreiface.CoreAPI, hash string) (bool, error) {
 				return true, nil
 			}
 		}
+	}*/
+
+	if _, found := localPinMapping[hash]; found {
+		log.Debug("ethoFS - pin match found", "type", localPinMapping[hash], "hash", hash)
+    		return true
 	}
-	log.Debug("ethoFS - pin match not found", "hash", cid)
-	return false, nil
+	log.Debug("ethoFS - pin match not found", "hash", hash)
+	return false
 }
 
 func pinAdd(api coreiface.CoreAPI, hash string) (string, error) {

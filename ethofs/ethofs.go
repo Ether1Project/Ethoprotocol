@@ -18,8 +18,9 @@ import (
 	//cid "github.com/ipfs/go-cidutil"
 )
 
-var ContractPinTrackingMap map[string][]string
-var MasterPinArray []string
+//var ContractPinTrackingMap map[string][]string
+//var MasterPinArray []string
+var localPinMapping map[string]string
 var selfNodeID string
 var repFactor = uint64(10)
 var BlockHeight = int(0)
@@ -34,6 +35,9 @@ var ipcLocation string
 //var testHash = "QmdP3gTCyZwR4F8Kf5qFH6JovbXVXhLM7XiCRqnsTY5dHG"
 
 func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
+
+	localPinMapping = make(map[string]string)
+
 	// initalize default locations
 	defaultDataDir = node.DefaultDataDir()
         if runtime.GOOS == "linux" {
@@ -69,6 +73,9 @@ func BlockListener(blockCommunication chan *types.Block) {
 					go CheckForUploads(block.Transactions())
 				}
 				go func() {
+
+					updateLocalPinMapping(Ipfs)
+
 					err := updatePinContractValues()
 					if err != nil {
 						log.Debug("ethoFS - error updating pin contract values")
@@ -94,15 +101,20 @@ func CheckForUploads(transactions types.Transactions) {
 				cids := scanForCids(transaction.Data())
 				for _, pin := range cids {
 					log.Debug("ethoFS - immediate pin request detail", "hash", pin)
-					pinned, err := pinSearch(Ipfs, pin)
-                        		if err != nil {
-                                		log.Debug("ethoFS - pin search error", "error", err)
+					pinned := pinSearch(pin)
+                        		if !pinned {
+                                		log.Debug("ethoFS - pin search error", "error", "pin not found")
                                 		continue
                         		} else {
                                 		log.Debug("ethoFS - data is pinned to local node", "hash", pin)
                         		}
 
 					providerCount, err := FindProvs(Node, pin)
+					if err != nil {
+						log.Warn("ethoFS - provider search error", "error", err)
+						continue
+					}
+
                         		if !pinned && providerCount < (repFactor / uint64(2))  {
                                 		// Pin data due to insufficient existing providers
                                 		addedPin, err := pinAdd(Ipfs, pin)

@@ -24,7 +24,7 @@ func FindProvs(node *core.IpfsNode, hash string) (uint64, error) {
 
 	log.Debug("ethoFS provider search initiated", "hash", hash)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
 	ctx, events := routing.RegisterForQueryEvents(ctx)
 
