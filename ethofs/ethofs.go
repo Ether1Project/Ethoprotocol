@@ -14,7 +14,6 @@ import (
 	icore "github.com/ipfs/interface-go-ipfs-core"
 
 	"github.com/ipfs/go-ipfs/core"
-
 	//cid "github.com/ipfs/go-cidutil"
 )
 
@@ -29,6 +28,7 @@ var Node *core.IpfsNode
 var contractControllerAddress = common.HexToAddress("0xc38B47169950D8A28bC77a6Fa7467464f25ADAFc")
 var mainChannelString = "ethoFSPinningChannel_alpha11"
 var defaultDataDir string
+
 //var DefaultDataDir = "/home/ether1node/.ether1"
 var ipcLocation string
 
@@ -40,13 +40,13 @@ func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
 
 	// initalize default locations
 	defaultDataDir = node.DefaultDataDir()
-        if runtime.GOOS == "linux" {
-                ipcLocation = defaultDataDir + "/geth.ipc"
-        } else if runtime.GOOS == "windows" {
-                ipcLocation = defaultDataDir + "\\geth.ipc"
-        } else if runtime.GOOS == "darwin" {
-                ipcLocation = defaultDataDir + "/geth.ipc"
-        }
+	if runtime.GOOS == "linux" {
+		ipcLocation = defaultDataDir + "/geth.ipc"
+	} else if runtime.GOOS == "windows" {
+		ipcLocation = defaultDataDir + "\\geth.ipc"
+	} else if runtime.GOOS == "darwin" {
+		ipcLocation = defaultDataDir + "/geth.ipc"
+	}
 
 	log.Info("Starting ethoFS node initialization", "type", nodeType)
 	Ipfs, Node = initializeEthofsNode(nodeType)
@@ -54,9 +54,9 @@ func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
 	go func() {
 		err := updatePinContractValues()
 		if err != nil {
-			log.Debug("ethoFS - error updating pin contract values")
+			log.Debug("ethoFS - Error updating pin contract values")
 		} else {
-			log.Debug("ethoFS - pin contract value update successful")
+			log.Debug("ethoFS - Pin contract value update successful")
 		}
 	}()
 	// Initialize block listener
@@ -66,30 +66,30 @@ func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
 //func NewBlock(block *types.Block) {
 func BlockListener(blockCommunication chan *types.Block) {
 	for {
-        	select {
-        		case block := <-blockCommunication:
-				log.Info("ethoFS - new block received for processing", "number", block.Header().Number.Int64(), "txs", len(block.Transactions()))
-				if len(block.Transactions()) > 0 {
-					go CheckForUploads(block.Transactions())
+		select {
+		case block := <-blockCommunication:
+			log.Info("ethoFS - New block received for processing", "number", block.Header().Number.Int64(), "txs", len(block.Transactions()))
+			if len(block.Transactions()) > 0 {
+				go CheckForUploads(block.Transactions())
+			}
+			go func() {
+
+				updateLocalPinMapping(Ipfs)
+
+				err := updatePinContractValues()
+				if err != nil {
+					log.Debug("ethoFS - Error updating pin contract values")
+				} else {
+					log.Debug("ethoFS - Pin contract value update successful")
 				}
-				go func() {
 
-					updateLocalPinMapping(Ipfs)
-
-					err := updatePinContractValues()
-					if err != nil {
-						log.Debug("ethoFS - error updating pin contract values")
-					} else {
-						log.Debug("ethoFS - pin contract value update successful")
-					}
-
-					if rand.Intn(100) > 95 {
-						// Initiate garbage collection randomly roughly every 20 blocks
-						go gc(Node)
-					}
-				}()
-	        }
-    	}
+				if rand.Intn(100) > 95 {
+					// Initiate garbage collection randomly roughly every 20 blocks
+					go gc(Node)
+				}
+			}()
+		}
+	}
 }
 
 func CheckForUploads(transactions types.Transactions) {
@@ -97,43 +97,43 @@ func CheckForUploads(transactions types.Transactions) {
 		recipient := transaction.To()
 		if *recipient == contractControllerAddress {
 			go func() {
-				log.Info("ethoFS - new upload transaction detected", "hash", transaction.Hash())
+				log.Info("ethoFS - New upload transaction detected", "hash", transaction.Hash())
 				cids := scanForCids(transaction.Data())
 				for _, pin := range cids {
-					log.Debug("ethoFS - immediate pin request detail", "hash", pin)
+					log.Debug("ethoFS - Immediate pin request detail", "hash", pin)
 					pinned := pinSearch(pin)
-                        		if !pinned {
-                                		log.Debug("ethoFS - pin search error", "error", "pin not found")
-                                		continue
-                        		} else {
-                                		log.Debug("ethoFS - data is pinned to local node", "hash", pin)
-                        		}
+					if !pinned {
+						log.Debug("ethoFS - Error while searching for pin", "error", "Pin not found")
+						continue
+					} else {
+						log.Debug("ethoFS - Data is pinned to local node", "hash", pin)
+					}
 
 					providerCount, err := FindProvs(Node, pin)
 					if err != nil {
-						log.Warn("ethoFS - provider search error", "error", err)
+						log.Warn("ethoFS - Provider search error", "error", err)
 						continue
 					}
 
-                        		if !pinned && providerCount < (repFactor / uint64(2))  {
-                                		// Pin data due to insufficient existing providers
-                                		addedPin, err := pinAdd(Ipfs, pin)
-                                		if err != nil {
-                                        		log.Debug("ethoFS - pin add error", "hash", pin, "error", err)
-                                        		continue
-                                		} else {
-                                        		log.Debug("ethoFS - pin add successful", "hash", addedPin)
-                                		}
-                        		} else if pinned && providerCount > (repFactor + (repFactor / uint64(2)))  {
-                                		// Pin data due to insufficient existing providers
-                                		removedPin, err := pinRemove(Ipfs, pin)
-                                		if err != nil {
-                                        		log.Debug("ethoFS - pin remove error", "hash", pin, "error", err)
-                                        		continue
-                                		} else {
-                                        		log.Debug("ethoFS - pin removal successful", "hash", removedPin)
-                                		}
-                        		}
+					if !pinned && providerCount < (repFactor/uint64(2)) {
+						// Pin data due to insufficient existing providers
+						addedPin, err := pinAdd(Ipfs, pin)
+						if err != nil {
+							log.Debug("ethoFS - Error adding pin", "hash", pin, "error", err)
+							continue
+						} else {
+							log.Debug("ethoFS - Pin added successfully", "hash", addedPin)
+						}
+					} else if pinned && providerCount > (repFactor+(repFactor/uint64(2))) {
+						// Pin data due to insufficient existing providers
+						removedPin, err := pinRemove(Ipfs, pin)
+						if err != nil {
+							log.Debug("ethoFS - Pin removal error", "hash", pin, "error", err)
+							continue
+						} else {
+							log.Debug("ethoFS - Pin removal successful", "hash", removedPin)
+						}
+					}
 				}
 			}()
 		}

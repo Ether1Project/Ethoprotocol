@@ -753,7 +753,7 @@ var (
 		Usage: "External EVM configuration (default = built-in interpreter)",
 		Value: "",
 	}
-	// Ethofs Node Flags
+	// ethoFS Node Flag
 	EthofsFlag = cli.StringFlag{
 		Name:  "ethofs",
 		Usage: "ethoFS node type to be initialized",

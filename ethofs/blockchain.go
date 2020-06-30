@@ -6,13 +6,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
+	"io"
 	"math/big"
 	"math/rand"
-	"io"
 	"time"
 
-	"github.com/ipfs/go-ipfs-files"
 	cid "github.com/ipfs/go-cid"
+	"github.com/ipfs/go-ipfs-files"
 	path "github.com/ipfs/interface-go-ipfs-core/path"
 )
 
@@ -45,7 +45,7 @@ func updatePinContractValues() error {
 
 			var pinNumber uint64
 
-			if uint64(lowerRange) + x >= uint64(pinCountResp) {
+			if uint64(lowerRange)+x >= uint64(pinCountResp) {
 				pinNumber = (uint64(lowerRange) + x) - uint64(pinCountResp)
 			} else {
 				pinNumber = uint64(lowerRange) + x
@@ -53,13 +53,13 @@ func updatePinContractValues() error {
 			i := new(big.Int).SetUint64(pinNumber)
 			contractPin, err := contract.Pins(nil, i)
 			if err != nil {
-				log.Debug("ethoFS - ether-1 contract connection error (contract pin)", "error",  err, "number", i)
+				log.Debug("ethoFS - Ether-1 contract connection error (Contract Pin)", "error", err, "number", i)
 				return
 			}
 
 			cid, err := cid.Parse(contractPin)
-        		if err != nil {
-                		log.Debug("ethoFS - ether-1 contract connection error (cid parse)", "error",  err)
+			if err != nil {
+				log.Debug("ethoFS - Ether-1 contract connection error (CID Parse)", "error", err)
 				return
 			}
 			// Request serialized pin list stored on ethoFS
@@ -70,7 +70,7 @@ func updatePinContractValues() error {
 
 			resp, err := Ipfs.Unixfs().Get(ctx, resolvedPath)
 			if err != nil {
-				log.Debug("ethoFS - data retrieval error", "hash", cid, "error", err)
+				log.Debug("ethoFS - Data retrieval error", "hash", cid, "error", err)
 				return
 			}
 			var file files.File
@@ -83,42 +83,42 @@ func updatePinContractValues() error {
 			buf.ReadFrom(r)
 			cids := scanForCids(buf.Bytes())
 
-			for _,pin := range cids {
-				log.Debug("ethoFS - pin request detail", "hash", pin, "number", i)
+			for _, pin := range cids {
+				log.Debug("ethoFS - Pin request detail", "hash", pin, "number", i)
 				pinned := pinSearch(pin)
 				if !pinned {
-					log.Debug("ethoFS - pin search error", "error", "pin not found")
+					log.Debug("ethoFS - Pin search error", "error", "The requested pin was not found")
 					continue
 				} else {
-					log.Debug("ethoFS - data is pinned to local node", "hash", pin)
+					log.Debug("ethoFS - Pata is pinned to local node", "hash", pin)
 				}
 
 				providerCount, err := FindProvs(Node, pin)
 				if err != nil {
-					log.Warn("ethoFS - provider search error", "error", err)
+					log.Warn("ethoFS - Provider search error", "error", err)
 					continue
 				}
 
 				// For testing
 				//log.Info("ethoFS - replication factor comparisons", "low", (repFactor / uint64(2)), "high", (repFactor + (repFactor / uint64(2))))
 
-				if !pinned && providerCount < (repFactor / uint64(2))  {
+				if !pinned && providerCount < (repFactor/uint64(2)) {
 					// Pin data due to insufficient existing providers
 					addedPin, err := pinAdd(Ipfs, pin)
 					if err != nil {
-						log.Debug("ethoFS - pin add error", "hash", pin, "error", err)
+						log.Debug("ethoFS - Pin add error", "hash", pin, "error", err)
 						continue
 					} else {
-						log.Debug("ethoFS - pin add successful", "hash", addedPin)
+						log.Debug("ethoFS - Pin added successfully", "hash", addedPin)
 					}
-				} else if pinned && providerCount > (repFactor + (repFactor / uint64(2)))  {
+				} else if pinned && providerCount > (repFactor+(repFactor/uint64(2))) {
 					// Pin data due to insufficient existing providers
 					removedPin, err := pinRemove(Ipfs, pin)
 					if err != nil {
-						log.Debug("ethoFS - pin remove error", "hash", pin, "error", err)
+						log.Debug("ethoFS - Pin removal error", "hash", pin, "error", err)
 						continue
 					} else {
-						log.Debug("ethoFS - pin removal successful", "hash", removedPin)
+						log.Debug("ethoFS - Pin removal successful", "hash", removedPin)
 					}
 				}
 			}

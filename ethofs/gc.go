@@ -8,20 +8,19 @@ import (
 
 	"github.com/ipfs/go-ipfs/core"
 	"github.com/ipfs/go-ipfs/core/corerepo"
-
 )
 
 func gc(node *core.IpfsNode) {
-	ctx,_ := context.WithTimeout(context.Background(), 100*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 100*time.Second)
 
-	log.Info("ethoFS - garbage collection initiated")
+	log.Info("ethoFS - Garbage collection initiated")
 
 	go func(node *core.IpfsNode, ctx context.Context) {
 		err := corerepo.GarbageCollect(node, ctx)
 		if err != nil {
-			log.Error("ethoFS - garbage collection error", "error", err)
+			log.Error("ethoFS - Error while collecting Garbage", "error", err)
 		} else {
-			log.Info("ethoFS - garbage collection completed")
+			log.Info("ethoFS - Garbage collection completed")
 		}
 	}(node, ctx)
 }

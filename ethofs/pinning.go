@@ -67,10 +67,10 @@ func pinSearch(hash string) bool {
 	}*/
 
 	if _, found := localPinMapping[hash]; found {
-		log.Debug("ethoFS - pin match found", "type", localPinMapping[hash], "hash", hash)
-    		return true
+		log.Debug("ethoFS - Matching pin found", "type", localPinMapping[hash], "hash", hash)
+		return true
 	}
-	log.Debug("ethoFS - pin match not found", "hash", hash)
+	log.Debug("ethoFS - Matching pin was not found", "hash", hash)
 	return false
 }
 

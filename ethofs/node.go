@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sync"
 	"strings"
+	"sync"
 
 	config "github.com/ipfs/go-ipfs-config"
 	files "github.com/ipfs/go-ipfs-files"
@@ -30,9 +30,9 @@ import (
 	"github.com/ipfs/go-ipfs/repo/fsrepo"
 	"github.com/libp2p/go-libp2p-core/peer"
 
+	corehttp "github.com/ipfs/go-ipfs/core/corehttp"
 	sockets "github.com/libp2p/go-socket-activation"
 	manet "github.com/multiformats/go-multiaddr-net"
-	corehttp "github.com/ipfs/go-ipfs/core/corehttp"
 )
 
 const (
@@ -51,16 +51,16 @@ func setupPlugins(externalPluginsPath string) error {
 	// Load any external plugins if available on externalPluginsPath
 	plugins, err := loader.NewPluginLoader(filepath.Join(externalPluginsPath, "plugins"))
 	if err != nil {
-		return fmt.Errorf("error loading plugins: %s", err)
+		return fmt.Errorf("Error loading plugins: %s", err)
 	}
 
 	// Load preloaded and external plugins
 	if err := plugins.Initialize(); err != nil {
-		return fmt.Errorf("error initializing plugins: %s", err)
+		return fmt.Errorf("Error initializing plugins: %s", err)
 	}
 
 	if err := plugins.Inject(); err != nil {
-		return fmt.Errorf("error injecting plugins: %s", err)
+		return fmt.Errorf("Error injecting plugins: %s", err)
 	}
 
 	return nil
@@ -69,7 +69,7 @@ func setupPlugins(externalPluginsPath string) error {
 func createTempRepo(ctx context.Context) (string, error) {
 	repoPath, err := ioutil.TempDir("", "ipfs-shell")
 	if err != nil {
-		return "", fmt.Errorf("failed to get temp dir: %s", err)
+		return "", fmt.Errorf("Failed to get the temp dir: %s", err)
 	}
 
 	// Create a config with default options and a 2048 bit key
@@ -81,7 +81,7 @@ func createTempRepo(ctx context.Context) (string, error) {
 	// Create the repo with the config
 	err = fsrepo.Init(repoPath, cfg)
 	if err != nil {
-		return "", fmt.Errorf("failed to init ephemeral node: %s", err)
+		return "", fmt.Errorf("Failed to initialize ephemeral node: %s", err)
 	}
 
 	return repoPath, nil
@@ -93,13 +93,13 @@ func swarmPeers(api icore.CoreAPI) {
 
 	conns, err := api.Swarm().Peers(ctx)
 	if err != nil {
-		log.Error("ethoFS peer swarming failed")
+		log.Error("ethoFS peer swarming has failed")
 	}
 
 	for _, c := range conns {
 		addr := c.Address().String()
 		peer := c.ID().Pretty()
-		log.Info("ethoFS peer connection found", "addr", addr, "id", peer) 
+		log.Info("ethoFS peer connection found", "addr", addr, "id", peer)
 	}
 }
 
@@ -114,7 +114,7 @@ func createNode(ctx context.Context, repoPath string) (icore.CoreAPI, *core.Ipfs
 	// Construct the node
 
 	nodeOptions := &core.BuildCfg{
-		Online:  true,
+		Online: true,
 		// This option sets the node to be a full DHT node (both fetching and storing DHT Records)
 		Routing: libp2p.DHTOption,
 		// This option sets the node to be a client DHT node (only fetching records)
@@ -173,9 +173,9 @@ func connectToPeers(ctx context.Context, ipfs icore.CoreAPI, peers []string) err
 			defer wg.Done()
 			err := ipfs.Swarm().Connect(ctx, *peerInfo)
 			if err != nil {
-				log.Debug("ethoFS peer connection failed", "node", peerInfo.ID, "message", err)
+				log.Debug("ethoFS peer connection has failed", "node", peerInfo.ID, "message", err)
 			} else {
-				log.Info("ethoFS peer connection successful", "node", peerInfo.ID)
+				log.Info("ethoFS peer connection was successful", "node", peerInfo.ID)
 			}
 		}(peerInfo)
 	}
@@ -228,7 +228,7 @@ func applyProfiles(conf *config.Config, profiles string) error {
 	for _, profile := range strings.Split(profiles, ",") {
 		transformer, ok := config.Profiles[profile]
 		if !ok {
-			return fmt.Errorf("invalid configuration profile: %s", profile)
+			return fmt.Errorf("Invalid configuration profile: %s", profile)
 		}
 
 		if err := transformer.Transform(conf); err != nil {
@@ -239,7 +239,7 @@ func applyProfiles(conf *config.Config, profiles string) error {
 }
 
 func doInit(out io.Writer, repoRoot string, empty bool, nBitsForKeypair int, confProfiles string, conf *config.Config) error {
-	if _, err := fmt.Fprintf(out, "initializing ethoFS node at %s\n", repoRoot); err != nil {
+	if _, err := fmt.Fprintf(out, "Initializing ethoFS node at %s\n", repoRoot); err != nil {
 		return err
 	}
 
@@ -273,7 +273,6 @@ func doInit(out io.Writer, repoRoot string, empty bool, nBitsForKeypair int, con
 		}
 	}
 
-
 	// Create swarm key for ethoFS private network
 	err := createSwarmKey(repoRoot)
 	if err != nil {
@@ -292,10 +291,10 @@ func createSwarmKey(repoRoot string) error {
 	_, err = f.WriteString("/key/swarm/psk/1.0.0/\n/base16/\n38307a74b2176d0054ffa2864e31ee22d0fc6c3266dd856f6d41bddf14e2ad63")
 	if err != nil {
 		f.Close()
-        	return err
+		return err
 	}
 
-	log.Info("ethoFS swarm key created successfully")
+	log.Info("ethoFS swarm key has been created successfully")
 	err = f.Close()
 	if err != nil {
 		return err
@@ -314,7 +313,7 @@ func checkWritable(dir string) error {
 			if os.IsPermission(err) {
 				return fmt.Errorf("%s is not writeable by the current user", dir)
 			}
-			return fmt.Errorf("unexpected error while checking writeablility of repo root: %s", err)
+			return fmt.Errorf("Unexpected error while checking writeablility of repo root: %s", err)
 		}
 		fi.Close()
 		return os.Remove(testfile)
@@ -326,7 +325,7 @@ func checkWritable(dir string) error {
 	}
 
 	if os.IsPermission(err) {
-		return fmt.Errorf("cannot write to %s, incorrect permissions", err)
+		return fmt.Errorf("Cannot write to %s, incorrect permissions", err)
 	}
 
 	return err
@@ -382,7 +381,7 @@ func initializeIpnsKeyspace(repoRoot string) error {
 func initializeEthofsRepo() error {
 
 	empty := true
-	nBitsForKeypair  := nBitsForKeypairDefault
+	nBitsForKeypair := nBitsForKeypairDefault
 
 	var conf *config.Config
 
