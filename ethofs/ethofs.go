@@ -58,6 +58,8 @@ func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
 		} else {
 			log.Debug("ethoFS - Pin contract value update successful")
 		}
+
+		updateLocalPinMapping(Ipfs)
 	}()
 	// Initialize block listener
 	go BlockListener(blockCommunication)
@@ -74,8 +76,6 @@ func BlockListener(blockCommunication chan *types.Block) {
 			}
 			go func() {
 
-				updateLocalPinMapping(Ipfs)
-
 				err := updatePinContractValues()
 				if err != nil {
 					log.Debug("ethoFS - Error updating pin contract values")
@@ -86,6 +86,9 @@ func BlockListener(blockCommunication chan *types.Block) {
 				if rand.Intn(100) > 95 {
 					// Initiate garbage collection randomly roughly every 20 blocks
 					go gc(Node)
+
+					// Update local pin tracking/mapping
+					go updateLocalPinMapping(Ipfs)
 				}
 			}()
 		}
@@ -101,7 +104,7 @@ func CheckForUploads(transactions types.Transactions) {
 				cids := scanForCids(transaction.Data())
 				for _, pin := range cids {
 					log.Debug("ethoFS - Immediate pin request detail", "hash", pin)
-					pinned := pinSearch(pin)
+					pinned := pinSearch(pin, localPinMapping)
 					if !pinned {
 						log.Debug("ethoFS - Error while searching for pin", "error", "Pin not found")
 						continue

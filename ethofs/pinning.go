@@ -2,6 +2,7 @@ package ethofs
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/ethereum/go-ethereum/log"
@@ -14,7 +15,7 @@ import (
 
 func updateLocalPinMapping(api coreiface.CoreAPI) error {
 
-	localPinMapping = make(map[string]string)
+	tempPinMapping := make(map[string]string)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -31,13 +32,27 @@ func updateLocalPinMapping(api coreiface.CoreAPI) error {
 
 	for p := range pins {
 		if p != nil && p.Path() != nil {
-			localPinMapping[p.Path().Cid().String()] = p.Type()
+			tempPinMapping[p.Path().Cid().String()] = p.Type()
 		}
 	}
-	return nil
+
+	select {
+        case <-ctx.Done():
+		if len(tempPinMapping) > 0 {
+			localPinMapping = tempPinMapping
+			log.Info("ethoFS - local pin mapping complete", "pin count", len(localPinMapping))
+			return nil
+		} else {
+	                log.Error("ethoFS - local pin mapping failure", "pin count", len(localPinMapping))
+        	        return fmt.Errorf("Error - ethoFS local pin mapping failure")
+		}
+        }
+
+
+//	return nil
 }
 
-func pinSearch(hash string) bool {
+func pinSearch(hash string, pinMapping map[string]string) bool {
 	/*ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -66,8 +81,8 @@ func pinSearch(hash string) bool {
 		}
 	}*/
 
-	if _, found := localPinMapping[hash]; found {
-		log.Debug("ethoFS - Matching pin found", "type", localPinMapping[hash], "hash", hash)
+	if _, found := pinMapping[hash]; found {
+		log.Debug("ethoFS - Matching pin found", "type", pinMapping[hash], "hash", hash)
 		return true
 	}
 	log.Debug("ethoFS - Matching pin was not found", "hash", hash)

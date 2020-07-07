@@ -85,7 +85,7 @@ func updatePinContractValues() error {
 
 			for _, pin := range cids {
 				log.Debug("ethoFS - Pin request detail", "hash", pin, "number", i)
-				pinned := pinSearch(pin)
+				pinned := pinSearch(pin, localPinMapping)
 				if !pinned {
 					log.Debug("ethoFS - Pin search error", "error", "The requested pin was not found")
 					continue
