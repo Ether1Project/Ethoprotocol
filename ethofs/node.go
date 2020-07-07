@@ -93,13 +93,13 @@ func swarmPeers(api icore.CoreAPI) {
 
 	conns, err := api.Swarm().Peers(ctx)
 	if err != nil {
-		log.Error("ethoFS peer swarming has failed")
+		log.Error("ethoFS - peer swarming has failed")
 	}
 
 	for _, c := range conns {
 		addr := c.Address().String()
 		peer := c.ID().Pretty()
-		log.Info("ethoFS peer connection found", "addr", addr, "id", peer)
+		log.Info("ethoFS - peer connection found", "addr", addr, "id", peer)
 	}
 }
 
@@ -173,9 +173,9 @@ func connectToPeers(ctx context.Context, ipfs icore.CoreAPI, peers []string) err
 			defer wg.Done()
 			err := ipfs.Swarm().Connect(ctx, *peerInfo)
 			if err != nil {
-				log.Debug("ethoFS peer connection has failed", "node", peerInfo.ID, "message", err)
+				log.Debug("ethoFS - peer connection has failed", "node", peerInfo.ID, "message", err)
 			} else {
-				log.Info("ethoFS peer connection was successful", "node", peerInfo.ID)
+				log.Info("ethoFS - peer connection was successful", "node", peerInfo.ID)
 			}
 		}(peerInfo)
 	}
@@ -276,7 +276,7 @@ func doInit(out io.Writer, repoRoot string, empty bool, nBitsForKeypair int, con
 	// Create swarm key for ethoFS private network
 	err := createSwarmKey(repoRoot)
 	if err != nil {
-		log.Error("Error creating ethoFS swarm key", "error", err)
+		log.Error("ethoFS - error creating swarm key", "error", err)
 		return err
 	}
 
@@ -294,7 +294,7 @@ func createSwarmKey(repoRoot string) error {
 		return err
 	}
 
-	log.Info("ethoFS swarm key has been created successfully")
+	log.Info("ethoFS - swarm key has been created successfully")
 	err = f.Close()
 	if err != nil {
 		return err
@@ -385,8 +385,8 @@ func initializeEthofsRepo() error {
 
 	var conf *config.Config
 
-	//profiles := "lowpower"
-	profiles := "default-networking"
+	profiles := "lowpower"
+	//profiles := "default-networking"
 
 	repoPath := defaultDataDir + "/ethofs"
 

@@ -22,64 +22,41 @@ func updateLocalPinMapping(api coreiface.CoreAPI) error {
 
 	opt, err := options.Pin.Ls.Type("all")
 	if err != nil {
+                log.Error("ethoFS - local pin mapping option failure", "error", err)
 		return err
 	}
 
 	pins, err := api.Pin().Ls(ctx, opt)
 	if err != nil {
+                log.Error("ethoFS - local pin mapping failure", "error", err)
 		return err
 	}
 
+
+	tempCount := 0
+
 	for p := range pins {
 		if p != nil && p.Path() != nil {
+			tempCount++
 			tempPinMapping[p.Path().Cid().String()] = p.Type()
 		}
 	}
 
 	select {
-        case <-ctx.Done():
+	case <-ctx.Done():
 		if len(tempPinMapping) > 0 {
 			localPinMapping = tempPinMapping
 			log.Info("ethoFS - local pin mapping complete", "pin count", len(localPinMapping))
 			return nil
 		} else {
-	                log.Error("ethoFS - local pin mapping failure", "pin count", len(localPinMapping))
-        	        return fmt.Errorf("Error - ethoFS local pin mapping failure")
+                	log.Error("ethoFS - local pin mapping failure", "pin count", len(localPinMapping))
+       	        	return fmt.Errorf("Error - ethoFS local pin mapping failure")
 		}
-        }
-
-
-//	return nil
+       	}
+	return nil
 }
 
 func pinSearch(hash string, pinMapping map[string]string) bool {
-	/*ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	cid, err := cid.Parse(hash)
-	if err != nil {
-		return false, err
-	}
-
-	opt, err := options.Pin.Ls.Type("all")
-	if err != nil {
-		return false, err
-	}
-
-	pins, err := api.Pin().Ls(ctx, opt)
-	if err != nil {
-		return false, err
-	}
-
-	for p := range pins {
-		if p != nil && p.Path() != nil {
-			log.Debug("ethoFS - pin found", "type", p.Type(), "hash", p.Path().Cid())
-			if cid == p.Path().Cid() {
-				log.Debug("ethoFS - pin match found", "type", p.Type(), "hash", p.Path().Cid())
-				return true, nil
-			}
-		}
-	}*/
 
 	if _, found := pinMapping[hash]; found {
 		log.Debug("ethoFS - Matching pin found", "type", pinMapping[hash], "hash", hash)

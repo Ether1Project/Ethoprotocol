@@ -17,8 +17,6 @@ import (
 	//cid "github.com/ipfs/go-cidutil"
 )
 
-//var ContractPinTrackingMap map[string][]string
-//var MasterPinArray []string
 var localPinMapping map[string]string
 var selfNodeID string
 var repFactor = uint64(10)
@@ -28,11 +26,8 @@ var Node *core.IpfsNode
 var contractControllerAddress = common.HexToAddress("0xc38B47169950D8A28bC77a6Fa7467464f25ADAFc")
 var mainChannelString = "ethoFSPinningChannel_alpha11"
 var defaultDataDir string
-
-//var DefaultDataDir = "/home/ether1node/.ether1"
 var ipcLocation string
 
-//var testHash = "QmdP3gTCyZwR4F8Kf5qFH6JovbXVXhLM7XiCRqnsTY5dHG"
 
 func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
 
@@ -54,9 +49,9 @@ func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
 	go func() {
 		err := updatePinContractValues()
 		if err != nil {
-			log.Debug("ethoFS - Error updating pin contract values")
+			log.Debug("ethoFS - error updating pin contract values")
 		} else {
-			log.Debug("ethoFS - Pin contract value update successful")
+			log.Debug("ethoFS - pin contract value update successful")
 		}
 
 		updateLocalPinMapping(Ipfs)
@@ -70,7 +65,7 @@ func BlockListener(blockCommunication chan *types.Block) {
 	for {
 		select {
 		case block := <-blockCommunication:
-			log.Info("ethoFS - New block received for processing", "number", block.Header().Number.Int64(), "txs", len(block.Transactions()))
+			log.Info("ethoFS - new block received for processing", "number", block.Header().Number.Int64(), "txs", len(block.Transactions()))
 			if len(block.Transactions()) > 0 {
 				go CheckForUploads(block.Transactions())
 			}
@@ -78,9 +73,9 @@ func BlockListener(blockCommunication chan *types.Block) {
 
 				err := updatePinContractValues()
 				if err != nil {
-					log.Debug("ethoFS - Error updating pin contract values")
+					log.Debug("ethoFS - error updating pin contract values")
 				} else {
-					log.Debug("ethoFS - Pin contract value update successful")
+					log.Debug("ethoFS - pin contract value update successful")
 				}
 
 				if rand.Intn(100) > 95 {
@@ -100,21 +95,21 @@ func CheckForUploads(transactions types.Transactions) {
 		recipient := transaction.To()
 		if *recipient == contractControllerAddress {
 			go func() {
-				log.Info("ethoFS - New upload transaction detected", "hash", transaction.Hash())
+				log.Info("ethoFS - new upload transaction detected", "hash", transaction.Hash())
 				cids := scanForCids(transaction.Data())
 				for _, pin := range cids {
-					log.Debug("ethoFS - Immediate pin request detail", "hash", pin)
+					log.Debug("ethoFS - immediate pin request detail", "hash", pin)
 					pinned := pinSearch(pin, localPinMapping)
 					if !pinned {
-						log.Debug("ethoFS - Error while searching for pin", "error", "Pin not found")
+						log.Debug("ethoFS - error while searching for pin", "error", "Pin not found")
 						continue
 					} else {
-						log.Debug("ethoFS - Data is pinned to local node", "hash", pin)
+						log.Debug("ethoFS - data is pinned to local node", "hash", pin)
 					}
 
 					providerCount, err := FindProvs(Node, pin)
 					if err != nil {
-						log.Warn("ethoFS - Provider search error", "error", err)
+						log.Warn("ethoFS - provider search error", "error", err)
 						continue
 					}
 
@@ -122,19 +117,19 @@ func CheckForUploads(transactions types.Transactions) {
 						// Pin data due to insufficient existing providers
 						addedPin, err := pinAdd(Ipfs, pin)
 						if err != nil {
-							log.Debug("ethoFS - Error adding pin", "hash", pin, "error", err)
+							log.Debug("ethoFS - error adding pin", "hash", pin, "error", err)
 							continue
 						} else {
-							log.Debug("ethoFS - Pin added successfully", "hash", addedPin)
+							log.Debug("ethoFS - pin added successfully", "hash", addedPin)
 						}
 					} else if pinned && providerCount > (repFactor+(repFactor/uint64(2))) {
 						// Pin data due to insufficient existing providers
 						removedPin, err := pinRemove(Ipfs, pin)
 						if err != nil {
-							log.Debug("ethoFS - Pin removal error", "hash", pin, "error", err)
+							log.Debug("ethoFS - pin removal error", "hash", pin, "error", err)
 							continue
 						} else {
-							log.Debug("ethoFS - Pin removal successful", "hash", removedPin)
+							log.Debug("ethoFS - pin removal successful", "hash", removedPin)
 						}
 					}
 				}
