@@ -139,4 +139,6 @@ var (
 	DurationLimit          = big.NewInt(13)     // The decision boundary on the blocktime duration used to determine whether difficulty should go up or not.
         PenaltySystemBlock     = int64(1620000)           // Activatation height of Penalty System.
 	DelayedBlockLength     = uint64(20)         // Threshold number of blocks that can be delayed.
+	MinNodeValidations     = int(3)             // Minimum number of collateralized nodes required to constitute a fully validated node
+	MinCollateralizedPeerGroup = int(100)       // Minimum number of collateralized nodes used in direct connection to build a peer group
 )
