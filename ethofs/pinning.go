@@ -58,8 +58,10 @@ func updateLocalPinMapping(api coreiface.CoreAPI) error {
 
 func pinSearch(hash string, pinMapping map[string]string) bool {
 
-	if _, found := pinMapping[hash]; found {
-		log.Debug("ethoFS - Matching pin found", "type", pinMapping[hash], "hash", hash)
+	tempPinMapping := pinMapping
+
+	if _, found := tempPinMapping[hash]; found {
+		log.Debug("ethoFS - Matching pin found", "type", found, "hash", hash)
 		return true
 	}
 	log.Debug("ethoFS - Matching pin was not found", "hash", hash)

@@ -31,6 +31,8 @@ var ipcLocation string
 
 func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
 
+	checkResources(nodeType)
+
 	localPinMapping = make(map[string]string)
 
 	// initalize default locations
@@ -81,7 +83,8 @@ func BlockListener(blockCommunication chan *types.Block) {
 				if rand.Intn(100) > 95 {
 					// Initiate garbage collection randomly roughly every 20 blocks
 					go gc(Node)
-
+				}
+				if rand.Intn(100) > 95 {
 					// Update local pin tracking/mapping
 					go updateLocalPinMapping(Ipfs)
 				}

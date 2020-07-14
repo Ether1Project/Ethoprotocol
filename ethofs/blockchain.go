@@ -39,7 +39,7 @@ func updatePinContractValues() error {
 	}
 
 	lowerRange := rand.Intn(int(pinCountResp))
-	for j := uint64(0); j < uint64(30); j++ {
+	for j := uint64(0); j < uint64(10); j++ {
 
 		go func(x uint64) {
 
