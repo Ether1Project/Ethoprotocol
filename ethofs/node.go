@@ -567,75 +567,8 @@ func initializeEthofsNode(nodeType string) (icore.CoreAPI, *core.IpfsNode) {
 			os.Exit(0)
 		}
 	}
-	// Spawn a node using a temporary path, creating a temporary repo for the run
-	/*log.Info("Spawning ethoFS node on a temporary repo")
-	ipfs, err := spawnEphemeral(ctx)
-	if err != nil {
-		panic(fmt.Errorf("failed to spawn ephemeral ethoFS node: %s", err))
-	}*/
 
 	log.Info("ethoFS - node initialization complete")
-
-	//log.Info("Retrieving ethoFS Data")
-
-	/*inputBasePath := "./example-folder/"
-	inputPathFile := inputBasePath + "ipfs.paper.draft3.pdf"
-	inputPathDirectory := inputBasePath + "test-dir"
-
-	someFile, err := getUnixfsNode(inputPathFile)
-	if err != nil {
-		panic(fmt.Errorf("Could not get File: %s", err))
-	}
-
-	cidFile, err := ipfs.Unixfs().Add(ctx, someFile)
-	if err != nil {
-		panic(fmt.Errorf("Could not add File: %s", err))
-	}
-
-	fmt.Printf("Added file to ethoFS with CID %s\n", cidFile.String())
-
-	someDirectory, err := getUnixfsNode(inputPathDirectory)
-	if err != nil {
-		panic(fmt.Errorf("Could not get File: %s", err))
-	}
-
-	cidDirectory, err := ipfs.Unixfs().Add(ctx, someDirectory)
-	if err != nil {
-		panic(fmt.Errorf("Could not add Directory: %s", err))
-	}
-
-	fmt.Printf("Added directory to ethoFS with CID %s\n", cidDirectory.String())
-
-	outputBasePath := "./example-folder/"
-	outputPathFile := outputBasePath + strings.Split(cidFile.String(), "/")[2]
-	outputPathDirectory := outputBasePath + strings.Split(cidDirectory.String(), "/")[2]
-
-	rootNodeFile, err := ipfs.Unixfs().Get(ctx, cidFile)
-	if err != nil {
-		panic(fmt.Errorf("Could not get file with CID: %s", err))
-	}
-
-	err = files.WriteTo(rootNodeFile, outputPathFile)
-	if err != nil {
-		panic(fmt.Errorf("Could not write out the fetched CID: %s", err))
-	}
-
-	fmt.Printf("Got file back from IPFS (IPFS path: %s) and wrote it to %s\n", cidFile.String(), outputPathFile)
-
-	rootNodeDirectory, err := ipfs.Unixfs().Get(ctx, cidDirectory)
-	if err != nil {
-		panic(fmt.Errorf("Could not get file with CID: %s", err))
-	}
-
-	err = files.WriteTo(rootNodeDirectory, outputPathDirectory)
-	if err != nil {
-		panic(fmt.Errorf("Could not write out the fetched CID: %s", err))
-	}
-
-	fmt.Printf("Got directory back from IPFS (IPFS path: %s) and wrote it to %s\n", cidDirectory.String(), outputPathDirectory)
-
-	fmt.Println("\n-- Going to connect to a few nodes in the Network as bootstrappers --")
-	*/
 
 	bootstrapNodes := []string{
 		"/ip4/164.68.107.82/tcp/4001/ipfs/QmeG81bELkgLBZFYZc53ioxtvRS8iNVzPqxUBKSuah2rcQ",
@@ -649,23 +582,5 @@ func initializeEthofsNode(nodeType string) (icore.CoreAPI, *core.IpfsNode) {
 
 	connectToPeers(ctx, ipfs, bootstrapNodes)
 
-	/*exampleCIDStr := "QmUaoioqU7bxezBQZkUcgcSyokatMY71sxsALxQmRRrHrj"
-
-	fmt.Printf("Fetching a file from the network with CID %s\n", exampleCIDStr)
-	outputPath := outputBasePath + exampleCIDStr
-	testCID := icorepath.New(exampleCIDStr)
-
-	rootNode, err := ipfs.Unixfs().Get(ctx, testCID)
-	if err != nil {
-		panic(fmt.Errorf("Could not get file with CID: %s", err))
-	}
-
-	err = files.WriteTo(rootNode, outputPath)
-	if err != nil {
-		panic(fmt.Errorf("Could not write out the fetched CID: %s", err))
-	}
-
-	fmt.Printf("Wrote the file to %s\n", outputPath)
-	*/
 	return ipfs, node
 }
