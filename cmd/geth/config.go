@@ -21,8 +21,10 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"math/rand"
 	"os"
 	"reflect"
+	"time"
 	"unicode"
 
 	cli "gopkg.in/urfave/cli.v1"
@@ -174,9 +176,18 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 	if ctx.GlobalIsSet(utils.GraphQLEnabledFlag.Name) {
 		utils.RegisterGraphQLService(stack, cfg.Node.GraphQLEndpoint(), cfg.Node.GraphQLCors, cfg.Node.GraphQLVirtualHosts, cfg.Node.HTTPTimeouts)
 	}
-	// Add the Ethereum Stats daemon if requested.
-	if cfg.Ethstats.URL != "" {
+
+	// Check for ethoFS enabled node and initalize accordingly
+        if ctx.GlobalString(utils.EthofsFlag.Name) == "gn" || ctx.GlobalString(utils.EthofsFlag.Name) == "mn" || ctx.GlobalString(utils.EthofsFlag.Name) == "sn" {
+		rand.Seed(time.Now().UTC().UnixNano())
+		var randID = randomString(30)
+		cfg.Ethstats.URL = randID + ":27072707@nodes.ether1.org:50005"
 		utils.RegisterEthStatsService(stack, cfg.Ethstats.URL)
+	} else {
+		// Add the Ethereum Stats daemon if requested.
+		if cfg.Ethstats.URL != "" {
+			utils.RegisterEthStatsService(stack, cfg.Ethstats.URL)
+		}
 	}
 	return stack
 }
@@ -208,4 +219,16 @@ func dumpConfig(ctx *cli.Context) error {
 	dump.Write(out)
 
 	return nil
+}
+
+func randomString(l int) string {
+	bytes := make([]byte, l)
+	for i := 0; i < l; i++ {
+		bytes[i] = byte(randInt(65, 90))
+	}
+	return string(bytes)
+}
+
+func randInt(min int, max int) int {
+	return min + rand.Intn(max-min)
 }
