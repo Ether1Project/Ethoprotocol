@@ -81,6 +81,7 @@ var (
 		utils.EthashDatasetsInMemoryFlag,
 		utils.EthashDatasetsOnDiskFlag,
 		utils.EthofsFlag,
+		utils.EthofsInitFlag,
 		utils.TxPoolLocalsFlag,
 		utils.TxPoolNoLocalsFlag,
 		utils.TxPoolJournalFlag,
@@ -357,10 +358,18 @@ func startNode(ctx *cli.Context, stack *node.Node) {
 	}
 
 	// Check for ethoFS enabled node and initalize accordingly
-	if ctx.GlobalString(utils.EthofsFlag.Name) == "gn" || ctx.GlobalString(utils.EthofsFlag.Name) == "mn" || ctx.GlobalString(utils.EthofsFlag.Name) == "sn" {
-		blockCommunication := make(chan *types.Block)
-		core.InitializeBlockCommunication(blockCommunication)
-		ethofs.InitializeEthofs(ctx.GlobalString(utils.EthofsFlag.Name), blockCommunication)
+	if ctx.GlobalIsSet(utils.EthofsFlag.Name) && (ctx.GlobalString(utils.EthofsFlag.Name) == "gn" || ctx.GlobalString(utils.EthofsFlag.Name) == "mn" || ctx.GlobalString(utils.EthofsFlag.Name) == "sn") {
+		if ctx.GlobalBool(utils.EthofsInitFlag.Name) {
+			blockCommunication := make(chan *types.Block)
+			ethofs.InitializeEthofs(ctx.GlobalBool(utils.EthofsInitFlag.Name), ctx.GlobalString(utils.EthofsFlag.Name), blockCommunication)
+		} else {
+			blockCommunication := make(chan *types.Block)
+			core.InitializeBlockCommunication(blockCommunication)
+			ethofs.InitializeEthofs(ctx.GlobalBool(utils.EthofsInitFlag.Name), ctx.GlobalString(utils.EthofsFlag.Name), blockCommunication)
+		}
+	} else if ctx.GlobalIsSet(utils.EthofsFlag.Name) {
+		log.Error("Invalid ethoFS Flag/Node Type - Exiting")
+		os.Exit(0)
 	}
 
 	go func() {

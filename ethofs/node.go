@@ -127,11 +127,8 @@ func createNode(ctx context.Context, repoPath string) (icore.CoreAPI, *core.Ipfs
 		return nil, nil, err
 	}
 
-	//Node = node // Assign node to stored ethoFS node var
-
 	// Attach the Core API to the constructed node
 	api, apiErr := coreapi.NewCoreAPI(node)
-	//Api = api
 	return api, node, apiErr
 }
 
@@ -239,9 +236,6 @@ func applyProfiles(conf *config.Config, profiles string) error {
 }
 
 func doInit(out io.Writer, repoRoot string, empty bool, nBitsForKeypair int, confProfiles string, conf *config.Config) error {
-	//if _, err := fmt.Fprintf(out, "Initializing ethoFS node at %s\n", repoRoot); err != nil {
-	//	return err
-	//}
 
 	if err := checkWritable(repoRoot); err != nil {
 		return err
@@ -485,7 +479,6 @@ func initializeGateway(node *core.IpfsNode) error {
 		corehttp.GatewayOption(writable, "/ipfs", "/ipns"),
 		corehttp.VersionOption(),
 		corehttp.CheckVersionOption(),
-		//corehttp.CommandsROOption(cmdctx),
 	}
 
 	if cfg.Experimental.P2pHttpProxy {
@@ -514,42 +507,49 @@ func initializeGateway(node *core.IpfsNode) error {
 	return nil
 }
 
-func initializeEthofsNode(nodeType string) (icore.CoreAPI, *core.IpfsNode) {
+func initializeEthofsNodeRepo(nodeType string) error {
 
-	log.Info("ethoFS - deploying ethoFS node")
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx := context.Background()
 
-	//ctx := context.Background()
+	log.Info("ethoFS - initializing ethoFS node on default repo path")
 
-	/*log.Info("ethoFS - node repo initialization started")
+	spawnDefault(ctx)
+
 	initErr := initializeEthofsRepo()
 	if initErr != errRepoExists && initErr != nil {
 		log.Error("ethoFS - unable to initalize ethoFS repo on default path", "error", initErr)
-		os.Exit(0)
-	}*/
+		return initErr
+	}
+
+	return nil
+}
+
+func initializeEthofsNodeConfig(nodeType string) {
+
+	ctx := context.Background()
+
+	_, node, _ := spawnDefault(ctx)
+
+	err := configEthofsNode(node, nodeType)
+	if err != nil {
+		log.Warn("ethoFS - unable to set default node configuration", "error", err)
+	} else {
+		log.Info("ethoFS - node default configuration setup complete")
+	}
+
+}
+
+func initializeEthofsNode(nodeType string) (icore.CoreAPI, *core.IpfsNode) {
+
+	log.Info("ethoFS - deploying ethoFS node")
+
+	ctx := context.Background()
 
 	log.Info("ethoFS - initializing ethoFS node on default repo path")
 	ipfs, node, err := spawnDefault(ctx)
 	if err != nil {
 		log.Warn("ethoFS - unable to intialize ethoFS node on default repo path", "error", err)
-		log.Info("ethoFS - node repo initialization started")
-		initErr := initializeEthofsRepo()
-		if initErr != nil {
-			log.Error("ethoFS - unable to initalize ethoFS repo on default path", "error", initErr)
-			os.Exit(0)
-		} else {
-		//	log.Info("ethoFS - retrying ethoFS node depoloyment")
-			//ipfs, node = initializeEthofsNode()
-			cancel()
-			//ctx = context.Background()
-			newIpfs, newNode, reInitErr := spawnDefault(ctx)
-			if reInitErr != nil {
-				log.Error("ethoFS - node initialization failed - exiting", "error", reInitErr)
-				os.Exit(0)
-			}
-			ipfs = newIpfs
-			node = newNode
-		}
+		os.Exit(0)
 	}
 
 	// Setup ethoFS node config defaults

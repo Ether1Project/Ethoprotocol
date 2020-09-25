@@ -3,6 +3,7 @@ package ethofs
 import (
 	//"fmt"
 	"math/rand"
+	"os"
 	"runtime"
 	//"strings"
 
@@ -29,7 +30,7 @@ var defaultDataDir string
 var ipcLocation string
 
 
-func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
+func InitializeEthofs(initFlag bool, nodeType string, blockCommunication chan *types.Block) {
 
 	checkResources(nodeType)
 
@@ -45,21 +46,34 @@ func InitializeEthofs(nodeType string, blockCommunication chan *types.Block) {
 		ipcLocation = defaultDataDir + "/geth.ipc"
 	}
 
-	log.Info("Starting ethoFS node initialization", "type", nodeType)
-	Ipfs, Node = initializeEthofsNode(nodeType)
+	if initFlag {
 
-	go func() {
-		err := updatePinContractValues()
-		if err != nil {
-			log.Debug("ethoFS - error updating pin contract values")
+ 		log.Info("Starting ethoFS repo initialization")
+		err := initializeEthofsNodeRepo(nodeType)
+		if err == nil {
+	 		log.Info("ethoFS repo initialization successful")
 		} else {
-			log.Debug("ethoFS - pin contract value update successful")
+	 		log.Warn("ethoFS repo initialization failed")
 		}
+		os.Exit(0)
 
-		updateLocalPinMapping(Ipfs)
-	}()
-	// Initialize block listener
-	go BlockListener(blockCommunication)
+	} else {
+ 		log.Info("Starting ethoFS node initialization", "type", nodeType)
+		Ipfs, Node = initializeEthofsNode(nodeType)
+
+		go func() {
+			err := updatePinContractValues()
+			if err != nil {
+				log.Debug("ethoFS - error updating pin contract values")
+			} else {
+				log.Debug("ethoFS - pin contract value update successful")
+			}
+
+			updateLocalPinMapping(Ipfs)
+		}()
+		// Initialize block listener
+		go BlockListener(blockCommunication)
+	}
 }
 
 //func NewBlock(block *types.Block) {
