@@ -764,6 +764,11 @@ var (
 		Name:  "ethofsInit",
 		Usage: "ethoFS repo initialization",
 	}
+	// ethoFS Node/Repo Config Flag
+	EthofsConfigFlag = cli.BoolFlag{
+		Name:  "ethofsConfig",
+		Usage: "ethoFS node type configuration",
+	}
 )
 
 // MakeDataDir retrieves the currently requested data directory, terminating

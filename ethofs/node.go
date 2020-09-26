@@ -524,7 +524,7 @@ func initializeEthofsNodeRepo(nodeType string) error {
 	return nil
 }
 
-func initializeEthofsNodeConfig(nodeType string) {
+func initializeEthofsNodeConfig(nodeType string) error {
 
 	ctx := context.Background()
 
@@ -533,10 +533,12 @@ func initializeEthofsNodeConfig(nodeType string) {
 	err := configEthofsNode(node, nodeType)
 	if err != nil {
 		log.Warn("ethoFS - unable to set default node configuration", "error", err)
+		return err
 	} else {
 		log.Info("ethoFS - node default configuration setup complete")
 	}
 
+	return nil
 }
 
 func initializeEthofsNode(nodeType string) (icore.CoreAPI, *core.IpfsNode) {

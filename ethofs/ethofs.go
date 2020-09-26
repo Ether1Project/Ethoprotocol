@@ -29,8 +29,7 @@ var mainChannelString = "ethoFSPinningChannel_alpha11"
 var defaultDataDir string
 var ipcLocation string
 
-
-func InitializeEthofs(initFlag bool, nodeType string, blockCommunication chan *types.Block) {
+func InitializeEthofs(initFlag bool, configFlag bool, nodeType string, blockCommunication chan *types.Block) {
 
 	checkResources(nodeType)
 
@@ -54,6 +53,17 @@ func InitializeEthofs(initFlag bool, nodeType string, blockCommunication chan *t
 	 		log.Info("ethoFS repo initialization successful")
 		} else {
 	 		log.Warn("ethoFS repo initialization failed")
+		}
+		os.Exit(0)
+
+	} else if configFlag {
+
+ 		log.Info("Starting ethoFS repo/node configuration")
+		err := initializeEthofsNodeConfig(nodeType)
+		if err == nil {
+	 		log.Info("ethoFS configuration successful")
+		} else {
+	 		log.Warn("ethoFS configuration failed")
 		}
 		os.Exit(0)
 
