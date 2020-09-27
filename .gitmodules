@@ -1,3 +1,39 @@
 [submodule "tests"]
 	path = tests/testdata
 	url = https://github.com/ethereum/tests
+[submodule "go-ipfs"]
+	path = go-ipfs
+	url = https://github.com/ipfs/go-ipfs
+[submodule "go-ipfs-api"]
+	path = go-ipfs-api
+	url = https://github.com/ipfs/go-ipfs-api
+[submodule "go-ipfs-cmdkit"]
+	path = go-ipfs-cmdkit
+	url = https://github.com/ipfs/go-ipfs-cmdkit
+[submodule "go-ipfs-files"]
+	path = go-ipfs-files
+	url = https://github.com/ipfs/go-ipfs-files
+[submodule "go-ipfs-util"]
+	path = go-ipfs-util
+	url = https://github.com/ipfs/go-ipfs-util
+[submodule "go-log"]
+	path = go-log
+	url = https://github.com/ipfs/go-log
+[submodule "go-flow-metrics"]
+	path = go-flow-metrics
+	url = https://github.com/libp2p/go-flow-metrics
+[submodule "go-libp2p-crypto"]
+	path = go-libp2p-crypto
+	url = https://github.com/libp2p/go-libp2p-crypto
+[submodule "go-libp2p-metrics"]
+	path = go-libp2p-metrics
+	url = https://github.com/libp2p/go-libp2p-metrics
+[submodule "go-libp2p-peer"]
+	path = go-libp2p-peer
+	url = https://github.com/libp2p/go-libp2p-peer
+[submodule "go-libp2p-protocol"]
+	path = go-libp2p-protocol
+	url = https://github.com/libp2p/go-libp2p-protocol
+[submodule "go-libp2p-pubsub"]
+	path = go-libp2p-pubsub
+	url = https://github.com/libp2p/go-libp2p-pubsub
