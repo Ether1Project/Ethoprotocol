@@ -33,6 +33,7 @@ var Modules = map[string]string{
 	"swarmfs":    SwarmfsJs,
 	"txpool":     TxpoolJs,
 	"les":        LESJs,
+	"lespay":     LESPayJs,
 }
 
 const ChequebookJs = `
@@ -74,7 +75,7 @@ web3._extend({
 			name: 'getSnapshot',
 			call: 'clique_getSnapshot',
 			params: 1,
-			inputFormatter: [web3._extend.utils.fromDecimal]
+			inputFormatter: [web3._extend.formatters.inputBlockNumberFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'getSnapshotAtHash',
@@ -85,7 +86,7 @@ web3._extend({
 			name: 'getSigners',
 			call: 'clique_getSigners',
 			params: 1,
-			inputFormatter: [web3._extend.utils.fromDecimal]
+			inputFormatter: [web3._extend.formatters.inputBlockNumberFormatter]
 		}),
 		new web3._extend.Method({
 			name: 'getSignersAtHash',
@@ -230,7 +231,8 @@ web3._extend({
 		new web3._extend.Method({
 			name: 'accountRange',
 			call: 'debug_accountRange',
-			params: 2
+			params: 6,
+			inputFormatter: [web3._extend.formatters.inputDefaultBlockNumberFormatter, null, null, null, null, null],
 		}),
 		new web3._extend.Method({
 			name: 'printBlock',
@@ -428,6 +430,12 @@ web3._extend({
 			inputFormatter: [null, null]
 		}),
 		new web3._extend.Method({
+			name: 'traceCall',
+			call: 'debug_traceCall',
+			params: 3,
+			inputFormatter: [null, null, null]
+		}),
+		new web3._extend.Method({
 			name: 'preimage',
 			call: 'debug_preimage',
 			params: 1,
@@ -491,6 +499,13 @@ web3._extend({
 			call: 'eth_signTransaction',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputTransactionFormatter]
+		}),
+		new web3._extend.Method({
+			name: 'estimateGas',
+			call: 'eth_estimateGas',
+			params: 2,
+			inputFormatter: [web3._extend.formatters.inputCallFormatter, web3._extend.formatters.inputBlockNumberFormatter],
+			outputFormatter: web3._extend.utils.toDecimal
 		}),
 		new web3._extend.Method({
 			name: 'submitTransaction',
@@ -836,7 +851,7 @@ web3._extend({
 		new web3._extend.Method({
 			name: 'addBalance',
 			call: 'les_addBalance',
-			params: 3
+			params: 2
 		}),
 	],
 	properties:
@@ -852,6 +867,37 @@ web3._extend({
 		new web3._extend.Property({
 			name: 'serverInfo',
 			getter: 'les_serverInfo'
+		}),
+	]
+});
+`
+
+const LESPayJs = `
+web3._extend({
+	property: 'lespay',
+	methods:
+	[
+		new web3._extend.Method({
+			name: 'distribution',
+			call: 'lespay_distribution',
+			params: 2
+		}),
+		new web3._extend.Method({
+			name: 'timeout',
+			call: 'lespay_timeout',
+			params: 2
+		}),
+		new web3._extend.Method({
+			name: 'value',
+			call: 'lespay_value',
+			params: 2
+		}),
+	],
+	properties:
+	[
+		new web3._extend.Property({
+			name: 'requestStats',
+			getter: 'lespay_requestStats'
 		}),
 	]
 });

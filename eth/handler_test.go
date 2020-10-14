@@ -317,7 +317,7 @@ func testGetNodeData(t *testing.T, protocol int) {
 	// Fetch for now the entire chain db
 	hashes := []common.Hash{}
 
-	it := db.NewIterator()
+	it := db.NewIterator(nil, nil)
 	for it.Next() {
 		if key := it.Key(); len(key) == common.HashLength {
 			hashes = append(hashes, common.BytesToHash(key))
@@ -349,7 +349,7 @@ func testGetNodeData(t *testing.T, protocol int) {
 	}
 	accounts := []common.Address{testBank, acc1Addr, acc2Addr}
 	for i := uint64(0); i <= pm.blockchain.CurrentBlock().NumberU64(); i++ {
-		trie, _ := state.New(pm.blockchain.GetBlockByNumber(i).Root(), state.NewDatabase(statedb))
+		trie, _ := state.New(pm.blockchain.GetBlockByNumber(i).Root(), state.NewDatabase(statedb), nil)
 
 		for j, acc := range accounts {
 			state, _ := pm.blockchain.State()
@@ -491,7 +491,7 @@ func testCheckpointChallenge(t *testing.T, syncmode downloader.SyncMode, checkpo
 		}
 	}
 	// Create a checkpoint aware protocol manager
-	blockchain, err := core.NewBlockChain(db, nil, config, ethash.NewFaker(), vm.Config{}, nil)
+	blockchain, err := core.NewBlockChain(db, nil, config, ethash.NewFaker(), vm.Config{}, nil, nil)
 	if err != nil {
 		t.Fatalf("failed to create new blockchain: %v", err)
 	}
@@ -578,7 +578,7 @@ func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
 		gspec   = &core.Genesis{Config: config}
 		genesis = gspec.MustCommit(db)
 	)
-	blockchain, err := core.NewBlockChain(db, nil, config, pow, vm.Config{}, nil)
+	blockchain, err := core.NewBlockChain(db, nil, config, pow, vm.Config{}, nil, nil)
 	if err != nil {
 		t.Fatalf("failed to create new blockchain: %v", err)
 	}
@@ -614,13 +614,16 @@ func testBroadcastBlock(t *testing.T, totalPeers, broadcastExpected int) {
 		select {
 		case <-doneCh:
 			received++
-
-		case <-time.After(100 * time.Millisecond):
+			if received > broadcastExpected {
+				// We can bail early here
+				t.Errorf("broadcast count mismatch: have %d > want %d", received, broadcastExpected)
+				return
+			}
+		case <-time.After(2 * time.Second):
 			if received != broadcastExpected {
 				t.Errorf("broadcast count mismatch: have %d, want %d", received, broadcastExpected)
 			}
 			return
-
 		case err = <-errCh:
 			t.Fatalf("broadcast failed: %v", err)
 		}
@@ -639,7 +642,7 @@ func TestBroadcastMalformedBlock(t *testing.T) {
 		gspec   = &core.Genesis{Config: config}
 		genesis = gspec.MustCommit(db)
 	)
-	blockchain, err := core.NewBlockChain(db, nil, config, engine, vm.Config{}, nil)
+	blockchain, err := core.NewBlockChain(db, nil, config, engine, vm.Config{}, nil, nil)
 	if err != nil {
 		t.Fatalf("failed to create new blockchain: %v", err)
 	}
