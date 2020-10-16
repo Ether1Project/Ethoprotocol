@@ -18,7 +18,7 @@ func gc(node *core.IpfsNode) {
 	go func(node *core.IpfsNode, ctx context.Context) {
 		err := corerepo.GarbageCollect(node, ctx)
 		if err != nil {
-			log.Error("ethoFS - Error while collecting Garbage", "error", err)
+			log.Debug("ethoFS - Error while collecting Garbage", "error", err)
 		} else {
 			log.Info("ethoFS - Garbage collection completed")
 		}

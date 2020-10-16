@@ -88,6 +88,9 @@ func InitializeEthofs(initFlag bool, configFlag bool, nodeType string, blockComm
 
 //func NewBlock(block *types.Block) {
 func BlockListener(blockCommunication chan *types.Block) {
+
+	returnFlag := false
+
 	for {
 		select {
 		case block := <-blockCommunication:
@@ -104,13 +107,16 @@ func BlockListener(blockCommunication chan *types.Block) {
 					log.Debug("ethoFS - pin contract value update successful")
 				}
 
-				if rand.Intn(100) > 95 {
+				randomBlockSelector := rand.Intn(100)
+
+				if randomBlockSelector > 95 {
 					// Initiate garbage collection randomly roughly every 20 blocks
 					go gc(Node)
 				}
-				if rand.Intn(100) > 95 {
+				if randomBlockSelector <= 5 && returnFlag == false {
+					returnFlag = true
 					// Update local pin tracking/mapping
-					go updateLocalPinMapping(Ipfs)
+					_, returnFlag = updateLocalPinMapping(Ipfs)
 				}
 			}()
 		}
@@ -136,7 +142,7 @@ func CheckForUploads(transactions types.Transactions) {
 
 					providerCount, err := FindProvs(Node, pin)
 					if err != nil {
-						log.Warn("ethoFS - provider search error", "error", err)
+						log.Debug("ethoFS - provider search error", "error", err)
 						continue
 					}
 

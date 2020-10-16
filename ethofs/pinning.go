@@ -13,7 +13,7 @@ import (
 	path "github.com/ipfs/interface-go-ipfs-core/path"
 )
 
-func updateLocalPinMapping(api coreiface.CoreAPI) error {
+func updateLocalPinMapping(api coreiface.CoreAPI) (error, bool) {
 
 	tempPinMapping := make(map[string]string)
 
@@ -22,14 +22,14 @@ func updateLocalPinMapping(api coreiface.CoreAPI) error {
 
 	opt, err := options.Pin.Ls.Type("all")
 	if err != nil {
-                log.Error("ethoFS - local pin mapping option failure", "error", err)
-		return err
+                log.Debug("ethoFS - local pin mapping option failure", "error", err)
+		return err, false
 	}
 
 	pins, err := api.Pin().Ls(ctx, opt)
 	if err != nil {
-                log.Error("ethoFS - local pin mapping failure", "error", err)
-		return err
+                log.Debug("ethoFS - local pin mapping failure", "error", err)
+		return err, false
 	}
 
 
@@ -47,13 +47,13 @@ func updateLocalPinMapping(api coreiface.CoreAPI) error {
 		if len(tempPinMapping) > 0 {
 			localPinMapping = tempPinMapping
 			log.Info("ethoFS - local pin mapping complete", "pin count", len(localPinMapping))
-			return nil
+			return nil, false
 		} else {
-                	log.Error("ethoFS - local pin mapping failure", "pin count", len(localPinMapping))
-       	        	return fmt.Errorf("Error - ethoFS local pin mapping failure")
+                	log.Debug("ethoFS - local pin mapping failure", "pin count", len(localPinMapping))
+       	        	return fmt.Errorf("Error - ethoFS local pin mapping failure"), false
 		}
        	}
-	return nil
+	return nil, false
 }
 
 func pinSearch(hash string, pinMapping map[string]string) bool {
