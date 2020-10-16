@@ -36,7 +36,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethdb"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/nodesystem"
 	"github.com/ethereum/go-ethereum/p2p"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/params"
@@ -589,50 +588,6 @@ func (pm *ProtocolManager) handleMsg(p *peer) error {
 				log.Debug("Failed to deliver bodies", "err", err)
 			}
 		}
-
-	case p.version >= etho1 && msg.Code == GetNodeValidationMsg:
-		// Decode the validation request
-		var request nodeValidationRequest
-		if err := msg.Decode(&request); err != nil {
-			log.Warn("receiving node validation error", "error", "true")
-			return errResp(ErrDecode, "%v: %v", msg, err)
-		}
-		requestingNodeId := request.RequestingId
-		peerEnodeId := nodesystem.GetNodeEnodeId(p.Peer.Node())
-		if common.BytesToHash(requestingNodeId) != common.BytesToHash([]byte(peerEnodeId)) {
-			log.Warn("fraudulent node validation request received", "peer id", []byte(peerEnodeId), "requesting id", requestingNodeId)
-			log.Warn("fraudulent node validation request received", "peer id", peerEnodeId, "requesting id", requestingNodeId)
-			return errors.New("fraudulent node validation request received")
-		}
-
-		requestingHash := request.Hash
-		nodePrivateKey := nodesystem.GetNodePrivateKey(nodesystem.ActiveNode().Server())
-		nodeEnodeId := nodesystem.GetNodeEnodeId(nodesystem.ActiveNode().Server().Self())
-		validationSignature := nodesystem.SignNodeValidation(nodePrivateKey, requestingNodeId, requestingHash)
-
-		log.Info("sending node validation response", "number", request.BlockNumber, "requesting node", peerEnodeId)
-		response := nodeValidationResponse{Hash: request.Hash, BlockNumber: request.BlockNumber, RequestingId: requestingNodeId, RespondingId: []byte(nodeEnodeId), Signature: validationSignature}
-		return p.SendNodeValidation(response)
-
-	case p.version >= etho1 && msg.Code == SendNodeValidationMsg:
-		// Decode the validation request
-		var response nodeValidationResponse
-		if err := msg.Decode(&response); err != nil {
-			log.Warn("send node validation error", "error", "true")
-			return errResp(ErrDecode, "%v: %v", msg, err)
-		}
-		if pm.peers.CheckPeerWithoutNodeValidationMessage(response.Hash, p) {
-			p.MarkNodeValidationMessage(response.Hash)
-			nodeEnodeId := nodesystem.GetNodeEnodeId(nodesystem.ActiveNode().Server().Self())
-			peerPublicKey := nodesystem.GetNodePublicKey(p.Peer.Node())
-
-			if nodesystem.ValidateNodeSignature([]byte(nodeEnodeId), response.Signature, []byte(peerPublicKey), response.Hash) {
-				nodesystem.AddValidationSignature(response.Hash, response.Signature)
-			} else {
-				log.Warn("invalid node signature received", "number", response.BlockNumber, "requesting node", string(response.RequestingId))
-			}
-                }
-                return nil
 	case p.version >= eth63 && msg.Code == GetNodeDataMsg:
 		// Decode the retrieval message
 		msgStream := rlp.NewStream(msg.Payload, uint64(msg.Size))

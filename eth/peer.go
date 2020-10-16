@@ -40,7 +40,6 @@ var (
 const (
 	maxKnownTxs    = 32768 // Maximum transactions hashes to keep in the known list (prevent DOS)
 	maxKnownBlocks = 1024  // Maximum block hashes to keep in the known list (prevent DOS)
-	maxKnownNodeValidationMessages = 1024  // Maximum node validation message records to keep in known list (prevent DOS)
 
 	// maxQueuedTxs is the maximum number of transactions to queue up before dropping
 	// older broadcasts.
@@ -99,7 +98,6 @@ type peer struct {
 	lock sync.RWMutex
 
 	knownBlocks     mapset.Set        // Set of block hashes known to be known by this peer
-	knownNodeValidationMessage   mapset.Set
 	queuedBlocks    chan *propEvent   // Queue of blocks to broadcast to the peer
 	queuedBlockAnns chan *types.Block // Queue of blocks to announce to the peer
 
@@ -119,7 +117,6 @@ func newPeer(version int, p *p2p.Peer, rw p2p.MsgReadWriter, getPooledTx func(ha
 		id:              fmt.Sprintf("%x", p.ID().Bytes()[:8]),
 		knownTxs:        mapset.NewSet(),
 		knownBlocks:     mapset.NewSet(),
-		knownNodeValidationMessage:   mapset.NewSet(),
 		queuedBlocks:    make(chan *propEvent, maxQueuedBlocks),
 		queuedBlockAnns: make(chan *types.Block, maxQueuedBlockAnns),
 		txBroadcast:     make(chan []common.Hash),
@@ -336,15 +333,6 @@ func (p *peer) MarkTransaction(hash common.Hash) {
 	p.knownTxs.Add(hash)
 }
 
-// MarkNodeValidationMessage marks a validation message as known for the peer
-func (p *peer) MarkNodeValidationMessage(hash common.Hash) {
-	// If we reached the memory allowance, drop a previously known block hash
-	for p.knownNodeValidationMessage.Cardinality() >= maxKnownNodeValidationMessages {
-		p.knownNodeValidationMessage.Pop()
-	}
-	p.knownNodeValidationMessage.Add(hash.String())
-}
-
 // SendTransactions64 sends transactions to the peer and includes the hashes
 // in its transaction hash set for future reference.
 //
@@ -515,11 +503,6 @@ func (p *peer) SendBlockBodiesRLP(bodies []rlp.RawValue) error {
 	return p2p.Send(p.rw, BlockBodiesMsg, bodies)
 }
 
-// SendNodeProtocolValidation sends signed validation of node activity
-func (p *peer) SendNodeValidation(data nodeValidationResponse) error {
-        return p2p.Send(p.rw, SendNodeValidationMsg, data)
-}
-
 // SendNodeDataRLP sends a batch of arbitrary internal data, corresponding to the
 // hashes requested.
 func (p *peer) SendNodeData(data [][]byte) error {
@@ -558,11 +541,6 @@ func (p *peer) RequestHeadersByNumber(origin uint64, amount int, skip int, rever
 func (p *peer) RequestBodies(hashes []common.Hash) error {
 	p.Log().Debug("Fetching batch of block bodies", "count", len(hashes))
 	return p2p.Send(p.rw, GetBlockBodiesMsg, hashes)
-}
-
-// RequestNodeValidation requests a signed validation from a specific peer
-func (p *peer) RequestNodeValidation(data nodeValidationRequest) error {
-        return p2p.Send(p.rw, GetNodeValidationMsg, data)
 }
 
 // RequestNodeData fetches a batch of arbitrary data from a node's known state
@@ -812,18 +790,6 @@ func (ps *peerSet) PeersWithoutTx(hash common.Hash) []*peer {
 		}
 	}
 	return list
-}
-
-// CheckPeerWithoutNodeValidationMessage checks if peer has node validation message
-// their set of known data.
-func (ps *peerSet) CheckPeerWithoutNodeValidationMessage(hash common.Hash, p *peer) bool {
-	ps.lock.RLock()
-	defer ps.lock.RUnlock()
-
-	if !p.knownNodeValidationMessage.Contains(hash.String()) {
-		return true
-	}
-	return false
 }
 
 // BestPeer retrieves the known peer with the currently highest total difficulty.
