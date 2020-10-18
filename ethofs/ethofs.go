@@ -126,7 +126,9 @@ func BlockListener(blockCommunication chan *types.Block) {
 func CheckForUploads(transactions types.Transactions) {
 	for _, transaction := range transactions {
 		recipient := transaction.To()
-		if *recipient == contractControllerAddress {
+		if recipient == nil {
+			continue
+		} else if *recipient == contractControllerAddress {
 			go func() {
 				log.Info("ethoFS - new upload transaction detected", "hash", transaction.Hash())
 				cids := scanForCids(transaction.Data())
