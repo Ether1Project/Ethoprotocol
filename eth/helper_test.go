@@ -62,7 +62,7 @@ func newTestProtocolManager(mode downloader.SyncMode, blocks int, generator func
 			Alloc:  core.GenesisAlloc{testBank: {Balance: big.NewInt(1000000)}},
 		}
 		genesis       = gspec.MustCommit(db)
-		blockchain, _ = core.NewBlockChain(db, nil, gspec.Config, engine, vm.Config{}, nil)
+		blockchain, _ = core.NewBlockChain(db, nil, gspec.Config, engine, vm.Config{}, nil, nil)
 	)
 	chain, _ := core.GenerateChain(gspec.Config, genesis, ethash.NewFaker(), db, blocks, generator)
 	if _, err := blockchain.InsertChain(chain); err != nil {
@@ -170,23 +170,14 @@ func newTestPeer(name string, version int, pm *ProtocolManager, shake bool) (*te
 	// Create a message pipe to communicate through
 	app, net := p2p.MsgPipe()
 
-	// Generate a random id and create the peer
+	// Start the peer on a new thread
 	var id enode.ID
 	rand.Read(id[:])
-
 	peer := pm.newPeer(version, p2p.NewPeer(id, name, nil), net, pm.txpool.Get)
-
-	// Start the peer on a new thread
 	errc := make(chan error, 1)
-	go func() {
-		select {
-		case pm.newPeerCh <- peer:
-			errc <- pm.handle(peer)
-		case <-pm.quitSync:
-			errc <- p2p.DiscQuitting
-		}
-	}()
+	go func() { errc <- pm.runPeer(peer) }()
 	tp := &testPeer{app: app, net: net, peer: peer}
+
 	// Execute any implicitly requested handshakes and return
 	if shake {
 		var (
@@ -194,7 +185,8 @@ func newTestPeer(name string, version int, pm *ProtocolManager, shake bool) (*te
 			head    = pm.blockchain.CurrentHeader()
 			td      = pm.blockchain.GetTd(head.Hash(), head.Number.Uint64())
 		)
-		tp.handshake(nil, td, head.Hash(), genesis.Hash(), forkid.NewID(pm.blockchain), forkid.NewFilter(pm.blockchain))
+		forkID := forkid.NewID(pm.blockchain.Config(), pm.blockchain.Genesis().Hash(), pm.blockchain.CurrentHeader().Number.Uint64())
+		tp.handshake(nil, td, head.Hash(), genesis.Hash(), forkID, forkid.NewFilter(pm.blockchain))
 	}
 	return tp, errc
 }

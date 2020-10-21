@@ -19,9 +19,9 @@ package params
 import "github.com/ethereum/go-ethereum/common"
 
 // MainnetBootnodes are the enode URLs of the P2P bootstrap nodes running on
-// the main Ethereum network.
+// the main Ether-1 network.
 var MainnetBootnodes = []string{
-	// Ethereum Foundation Go Bootnodes
+	// Ether-1 Geth Bootnodes
 	"enode://335a900592ae34ec50cc13a5434f8737dd5e29172f7bcfab071b35414cd48de4d1a51a49d177f85f4ff85f7edcb8ec137bee739afb6fc6053bad10478b8f3da9@206.189.30.232:30305",
 	"enode://a557fe5cbad84b33a3fe35d46b9153b0514e7b6c533cf9ee9adf53f144799243a2100ad44bc8c12dd185549bdebb446a28b62dc390ba1ed20681cdbb97324cfc@95.179.163.200:30305",
 	"enode://908d14e9791f57eb5db026c30777f8bb8be90f11b2a17643d8ba2c6d449fd13a84a11d0bce1d458b1834624a5f6b3af486bbf297cdffbb3697817e7c64cd5867@142.93.151.20:30305",
@@ -40,17 +40,36 @@ var MainnetBootnodes = []string{
 	"enode://03944d60046265f36aa333373e36604570029dc0dc9518d4226ba2037ae33cc2c5dd6940ee22c3ce85ad8a3c5791f81b73530dbe77aacd22d9e25593c4a354c8@140.82.54.221:30305",
 	"enode://03944d60046265f36aa333373e36604570029dc0dc9518d4226ba2037ae33cc2c5dd6940ee22c3ce85ad8a3c5791f81b73530dbe77aacd22d9e25593c4a354c8@149.28.167.176:30305",
 	"enode://44a4cc298c2877201339d27a84b10eb67959bc089f04e98a240428a80598880501cb6fcbb43cea0157efeaa719450edcdff2233d3614ff72319510d49db6ade8@144.91.86.189:30305",
-	"enode://6d0f3acdc177ff57c3ec1795690f37a2d3520cd0766fd5b4d360e9cae906172df5714691ea2db5d571922481871980d14370ac5bf36201329d417810c5bc179d@142.44.246.43:30305", // Cluster Node 1
-	"enode://3422f8bc295521007dc0e1595d9f6726c433f0dd9dfdfce901fc20c65a5e7bd610a6c2ccad93354bb803c6000ae0de84704a3111289aaf5293cc02618d4bbca3@51.79.70.144:30305",  // Cluster Node 2
-	"enode://6349cac48451fd38cb9b9a19bac2e5f6aaa626e215079eb0d9225689749b11950e05e175db382598eea13e98d123e0581838ce1d4575800b17801360273b59ce@51.77.150.202:30305", // Cluster Node 3
-	"enode://6d52b88413881718cc2bad61a28f81d84d43140196cacb590c0a59d6a5aa31d1b33cee84b430aa28ecb69339f24dff6c11fffa23335ede60f1174f679025ea3c@164.68.107.82:30305", // Cluster Node 4
-	"enode://66c70a5c9bd2418cf8a559073774a9ddb3160aef5f4cd5936243acc873cbe7e77679675eacb8d268aab643644566c3ad34512d831e17163cf3c4cb232466be14@164.68.98.94:30305",  // Cluster Node 5
-	"enode://544435e729af7dbc26f0343ccc128ebcca5b1f685de1e1ecd612a3f7778456e61304ea34190e7386d6204e14b904aa9a0ef153729f7a27ff50136aa8474c0ed9@164.68.108.54:30305", // Cluster Node 6
+	// Cluster Node 1
+	"enode://6d0f3acdc177ff57c3ec1795690f37a2d3520cd0766fd5b4d360e9cae906172df5714691ea2db5d571922481871980d14370ac5bf36201329d417810c5bc179d@142.44.246.43:30305",
+	// Cluster Node 2
+	"enode://3422f8bc295521007dc0e1595d9f6726c433f0dd9dfdfce901fc20c65a5e7bd610a6c2ccad93354bb803c6000ae0de84704a3111289aaf5293cc02618d4bbca3@51.79.70.144:30305",
+	// Cluster Node 3
+	"enode://6349cac48451fd38cb9b9a19bac2e5f6aaa626e215079eb0d9225689749b11950e05e175db382598eea13e98d123e0581838ce1d4575800b17801360273b59ce@51.77.150.202:30305",
+	// Cluster Node 4
+	"enode://6d52b88413881718cc2bad61a28f81d84d43140196cacb590c0a59d6a5aa31d1b33cee84b430aa28ecb69339f24dff6c11fffa23335ede60f1174f679025ea3c@164.68.107.82:30305",
+	// Cluster Node 5
+	"enode://66c70a5c9bd2418cf8a559073774a9ddb3160aef5f4cd5936243acc873cbe7e77679675eacb8d268aab643644566c3ad34512d831e17163cf3c4cb232466be14@164.68.98.94:30305",
+	// Cluster Node 6
+	"enode://544435e729af7dbc26f0343ccc128ebcca5b1f685de1e1ecd612a3f7778456e61304ea34190e7386d6204e14b904aa9a0ef153729f7a27ff50136aa8474c0ed9@164.68.108.54:30305",
+	// Pistol's Bootnode
+	"enode://91b89285c5f313b9badfb41fe309ee9b0d307a1976b687bd79dea6b344033bb4a690a0371640f79f1709f5199a492428318a16da854039b4a9fbafb3bd10e051@207.180.197.210:30305",
+	// Crypto_Saiyan's Bootnode
+	"enode://6d9ed0b577af7162694fdc38098ebf037ac5984eb051f144ee23e15686c6396b6a1a1b43c8a105479de6742af088dbf3b543bc56a782b427cfb6cc0b60fede8b@144.91.117.137:30305",
+	// Primate's Bootnode
+	"enode://b9cc36cb5ec88973a02163e69fee6ba0e30c880151e3118dbcb906430cbd26bab42e15d3f0d3ed0fe2621cea29d3a61ee6d1954eabddbb50e43326071ab0ac0c@63.141.228.219:44444",
+	// Dylie's Bootnode
+	"enode://ff3669514ad3a68e2e8aaee40d7a9fd8723ee0a7cb4492dc18c89a13f0d9b77b9fd0be950de1c45a9afd8f8cfbd4b4f13d215454fa2c18c654c54984a705483f@5.189.157.250:30305",
 }
 
-// TestnetBootnodes are the enode URLs of the P2P bootstrap nodes running on the
+// RopstenBootnodes are the enode URLs of the P2P bootstrap nodes running on the
 // Ropsten test network.
-var TestnetBootnodes = []string{}
+var RopstenBootnodes = []string{
+	"enode://30b7ab30a01c124a6cceca36863ece12c4f5fa68e3ba9b0b51407ccc002eeed3b3102d20a88f1c1d3c3154e2449317b8ef95090e77b312d5cc39354f86d5d606@52.176.7.10:30303",    // US-Azure geth
+	"enode://865a63255b3bb68023b6bffd5095118fcc13e79dcf014fe4e47e065c350c7cc72af2e53eff895f11ba1bbb6a2b33271c1116ee870f266618eadfc2e78aa7349c@52.176.100.77:30303",  // US-Azure parity
+	"enode://6332792c4a00e3e4ee0926ed89e0d27ef985424d97b6a45bf0f23e51f0dcb5e66b875777506458aea7af6f9e4ffb69f43f3778ee73c81ed9d34c51c4b16b0b0f@52.232.243.152:30303", // Parity
+	"enode://94c15d1b9e2fe7ce56e458b9a3b672ef11894ddedd0c6f247e0f1d3487f52b66208fb4aeb8179fce6e3a749ea93ed147c37976d67af557508d199d9594c35f09@192.81.208.223:30303", // @gpip
+}
 
 // RinkebyBootnodes are the enode URLs of the P2P bootstrap nodes running on the
 // Rinkeby test network.
@@ -60,17 +79,30 @@ var RinkebyBootnodes = []string{}
 // Görli test network.
 var GoerliBootnodes = []string{}
 
-// DiscoveryV5Bootnodes are the enode URLs of the P2P bootstrap nodes for the
-// experimental RLPx v5 topic-discovery network.
-var DiscoveryV5Bootnodes = []string{}
+// YoloV1Bootnodes are the enode URLs of the P2P bootstrap nodes running on the
+// YOLOv1 ephemeral test network.
+var YoloV1Bootnodes = []string{
+	"enode://9e1096aa59862a6f164994cb5cb16f5124d6c992cdbf4535ff7dea43ea1512afe5448dca9df1b7ab0726129603f1a3336b631e4d7a1a44c94daddd03241587f9@35.178.210.161:30303",
+}
 
 const dnsPrefix = ""
 
-// These DNS names provide bootstrap connectivity for public testnets and the mainnet.
-// See https://github.com/ethereum/discv4-dns-lists for more information.
-var KnownDNSNetworks = map[common.Hash]string{
-	MainnetGenesisHash: dnsPrefix + "",
-	TestnetGenesisHash: dnsPrefix + "",
-	RinkebyGenesisHash: dnsPrefix + "",
-	GoerliGenesisHash:  dnsPrefix + "",
+// KnownDNSNetwork returns the address of a public DNS-based node list for the given
+// genesis hash and protocol. See https://github.com/ethereum/discv4-dns-lists for more
+// information.
+func KnownDNSNetwork(genesis common.Hash, protocol string) string {
+	var net string
+	switch genesis {
+	case MainnetGenesisHash:
+		net = "mainnet"
+	case RopstenGenesisHash:
+		net = "ropsten"
+	case RinkebyGenesisHash:
+		net = "rinkeby"
+	case GoerliGenesisHash:
+		net = "goerli"
+	default:
+		return ""
+	}
+	return dnsPrefix + protocol + "." + net + ".ethdisco.net"
 }
