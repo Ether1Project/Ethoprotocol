@@ -9,37 +9,6 @@ https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/6874
 [![Discord](https://img.shields.io/badge/discord-join%20chat-blue.svg)](https://discord.gg/MFn9Tmz)
 [![CircleCI](https://circleci.com/gh/Ether1Project/Ether1.svg?style=svg)](https://circleci.com/gh/Ether1Project/Ether1)
 
-## Kepler Updates (ethoFS enabled nodes)
-
-Initializing, configuring and running an ethoFS node with the Kepler update is a three step process.
-
-All three node types are available to initialize, config and run via the CLI utilizing the --ethofs flag to designate node type. Explore the [Ether-1 Node Dashboard ](https://nodes.ether1.org) for details and requirements for deploying each ethofs enabled node type.
-
-#### Node Types:
-
-Service Node (sn)
-Masternode (mn)
-Gateway Node (gn)
-
-#### Node Initialization, Configuration and Run Commands:
-
-Step 1: Run ethoFS Initialization
-
-```shell
-$ geth --ethofs=mn --ethofsInit console
-```
-
-Step 2: Run ethoFS Configuration
-
-```shell
-$ geth --ethofs=mn --ethofsConfig console
-```
-
-Step 3: Start ethoFS Enabled Node
-
-```shell
-$ geth --ethofs=mn console
-```
 
 ## Building the source
 
@@ -350,6 +319,39 @@ Which will start mining blocks and transactions on a single CPU thread, creditin
 proceedings to the account specified by `--etherbase`. You can further tune the mining
 by changing the default gas limit blocks converge to (`--targetgaslimit`) and the price
 transactions are accepted at (`--gasprice`).
+
+
+## Kepler Updates (ethoFS enabled nodes)
+
+Initializing, configuring and running an ethoFS node with the Kepler update is a three step process.
+
+All three node types are available to initialize, config and run via the CLI utilizing the --ethofs flag to designate node type. Explore the [Ether-1 Node Dashboard ](https://nodes.ether1.org) for details and requirements for deploying each ethofs enabled node type.
+
+#### Node Types:
+
+Service Node (sn)
+Masternode (mn)
+Gateway Node (gn)
+
+#### Node Initialization, Configuration and Run Commands:
+
+Step 1: Run ethoFS Initialization
+
+```shell
+$ geth --ethofs=mn --ethofsInit console
+```
+
+Step 2: Run ethoFS Configuration
+
+```shell
+$ geth --ethofs=mn --ethofsConfig console
+```
+
+Step 3: Start ethoFS Enabled Node
+
+```shell
+$ geth --ethofs=mn console
+```
 
 ## Contribution
 
