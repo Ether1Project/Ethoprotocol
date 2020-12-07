@@ -27,6 +27,7 @@ import (
 
 // block communication channel declaration
 var blockCommunication chan<- *types.Block
+var isInitialized = false
 
 // insertStats tracks and reports on block insertion.
 type insertStats struct {
@@ -76,7 +77,7 @@ func (st *insertStats) report(chain []*types.Block, index int, dirty common.Stor
 		}
 		log.Info("Imported new chain segment", context...)
 
-		if len(chain) == 1 {
+		if isInitialized && len(chain) == 1 {
 			//ethofs.NewBlock(chain[0]) // ethoFS new block event handler
 			sendNewBlockCommunication(chain[0])
 		}
@@ -89,6 +90,7 @@ func (st *insertStats) report(chain []*types.Block, index int, dirty common.Stor
 // Initialize new block comms
 func InitializeBlockCommunication(newBlockReceiptChannel chan<- *types.Block) {
 	blockCommunication = newBlockReceiptChannel
+	isInitialized = true
 }
 
 // Send new block using comms

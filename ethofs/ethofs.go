@@ -28,6 +28,11 @@ var contractControllerAddress = common.HexToAddress("0xc38B47169950D8A28bC77a6Fa
 var mainChannelString = "ethoFSPinningChannel_alpha11"
 var defaultDataDir string
 var ipcLocation string
+var isInitialized = false
+
+func IsInitialized() bool {
+	return isInitialized
+}
 
 func InitializeEthofs(initFlag bool, configFlag bool, nodeType string, blockCommunication chan *types.Block) {
 
