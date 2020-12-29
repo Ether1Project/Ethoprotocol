@@ -267,34 +267,7 @@ func doInit(out io.Writer, repoRoot string, empty bool, nBitsForKeypair int, con
 		}
 	}
 
-	// Create swarm key for ethoFS private network
-	err := createSwarmKey(repoRoot)
-	if err != nil {
-		log.Error("ethoFS - error creating swarm key", "error", err)
-		return err
-	}
-
 	return initializeIpnsKeyspace(repoRoot)
-}
-
-func createSwarmKey(repoRoot string) error {
-	f, err := os.Create(repoRoot + "/swarm.key")
-	if err != nil {
-		return err
-	}
-	_, err = f.WriteString("/key/swarm/psk/1.0.0/\n/base16/\n38307a74b2176d0054ffa2864e31ee22d0fc6c3266dd856f6d41bddf14e2ad63")
-	if err != nil {
-		f.Close()
-		return err
-	}
-
-	log.Info("ethoFS - swarm key has been created successfully")
-	err = f.Close()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func checkWritable(dir string) error {
