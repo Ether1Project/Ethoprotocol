@@ -56,7 +56,7 @@ const logo = `
        ,,,,,,    ,,,,,,,,,                                                                                                                  
          ,,,,,   ,,,,,,,,                                                                                                                   
           ,,,,   ,,,,,,                                                                                                                     
-            ,,   ,,,,                                                                     Kepler v1.4.2                                     
+            ,,   ,,,,                                                                     Atlas v1.5.0                                     
                  ,,                                                                       ethoFS Enabled Node                               
                  ,                                                                                                                          
 `
