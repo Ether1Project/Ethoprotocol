@@ -16,7 +16,20 @@ import (
 	path "github.com/ipfs/interface-go-ipfs-core/path"
 )
 
+var pinResponseFlag = false
+var pinResponseCount = uint64(10)
+
+func checkPinResponse(pinNumber uint64) {
+	if pinNumber >= pinResponseCount {
+		pinResponseFlag = false
+	}
+}
+
 func updatePinContractValues() error {
+	if(pinResponseFlag) {
+		return nil // Returning as pin response collection still in process
+	}
+
 	c, err := ethclient.Dial(ipcLocation)
 	if err != nil {
 		return err
@@ -39,7 +52,7 @@ func updatePinContractValues() error {
 	}
 
 	lowerRange := rand.Intn(int(pinCountResp))
-	for j := uint64(0); j < uint64(10); j++ {
+	for j := uint64(0); j < pinResponseCount; j++ {
 
 		go func(x uint64) {
 
@@ -54,12 +67,14 @@ func updatePinContractValues() error {
 			contractPin, err := contract.Pins(nil, i)
 			if err != nil {
 				log.Debug("ethoFS - ether-1 contract connection error (Contract Pin)", "error", err, "number", i)
+				checkPinResponse(x)
 				return
 			}
 
 			cid, err := cid.Parse(contractPin)
 			if err != nil {
 				log.Debug("ethoFS - ether-1 contract connection error (CID Parse)", "error", err)
+				checkPinResponse(x)
 				return
 			}
 			// Request serialized pin list stored on ethoFS
@@ -71,12 +86,14 @@ func updatePinContractValues() error {
 			resp, err := Ipfs.Unixfs().Get(ctx, resolvedPath)
 			if err != nil {
 				log.Debug("ethoFS - data retrieval error", "hash", cid, "error", err)
+				checkPinResponse(x)
 				return
 			}
 			var file files.File
 			file = files.ToFile(resp)
 			var r io.Reader = file
 			if r == nil {
+				checkPinResponse(x)
 				return
 			}
 			buf := new(bytes.Buffer)
@@ -118,6 +135,7 @@ func updatePinContractValues() error {
 					}
 				}
 			}
+			checkPinResponse(x)
 		}(j)
 	}
 
