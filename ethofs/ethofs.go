@@ -50,6 +50,11 @@ func InitializeEthofs(initFlag bool, configFlag bool, nodeType string, blockComm
 		ipcLocation = defaultDataDir + "/geth.ipc"
 	}
 
+	clientErr := initializeEthClient()
+	if clientErr != nil {
+		os.Exit(0)
+	}
+
 	if initFlag {
 
  		log.Info("Starting ethoFS repo initialization")

@@ -18,6 +18,7 @@ import (
 
 var pinResponseFlag = false
 var pinResponseCount = uint64(10)
+var ethClient *ethclient.Client
 
 func checkPinResponse(pinNumber uint64) {
 	if pinNumber >= pinResponseCount {
@@ -25,15 +26,21 @@ func checkPinResponse(pinNumber uint64) {
 	}
 }
 
+func initializeEthClient() error {
+	c, err := ethclient.Dial(ipcLocation)
+	if err != nil {
+		return err
+	}
+	ethClient = c
+	return nil
+}
+
 func updatePinContractValues() error {
 	if(pinResponseFlag) {
 		return nil // Returning as pin response collection still in process
 	}
 
-	c, err := ethclient.Dial(ipcLocation)
-	if err != nil {
-		return err
-	}
+	c := ethClient
 
 	address := common.HexToAddress("0xD3b80c611999D46895109d75322494F7A49D742F")
 	contract, err := NewPinStorage(address, c)
