@@ -110,23 +110,21 @@ func BlockListener(blockCommunication chan *types.Block) {
 			}
 			go func() {
 
-				err := updatePinContractValues()
-				if err != nil {
-					log.Debug("ethoFS - error updating pin contract values")
-				} else {
-					log.Debug("ethoFS - pin contract value update successful")
-				}
-
 				randomBlockSelector := rand.Intn(100)
-
-				if randomBlockSelector > 95 {
-					// Initiate garbage collection randomly roughly every 20 blocks
-					go gc(Node)
-				}
-				if randomBlockSelector <= 5 && returnFlag == false {
+				if randomBlockSelector > 25 && randomBlockSelector < 75 {
+				        err := updatePinContractValues()
+				        if err != nil {
+					        log.Debug("ethoFS - error updating pin contract values")
+				        } else {
+					        log.Debug("ethoFS - pin contract value update successful")
+				        }
+				} else if randomBlockSelector < 5 && returnFlag == false {
 					returnFlag = true
 					// Update local pin tracking/mapping
 					_, returnFlag = updateLocalPinMapping(Ipfs)
+                                } else if randomBlockSelector > 98 {
+					// Initiate garbage collection randomly roughly every 20 blocks
+					go gc(Node)
 				}
 			}()
 		}
