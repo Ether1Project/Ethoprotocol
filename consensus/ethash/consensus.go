@@ -52,14 +52,14 @@ var (
 	// calcDifficultyEip2384 is the difficulty adjustment algorithm as specified by EIP 2384.
 	// It offsets the bomb 4M blocks from Constantinople, so in total 9M blocks.
 	// Specification EIP-2384: https://eips.ethereum.org/EIPS/eip-2384
-	calcDifficultyEip2384 = makeDifficultyCalculator(big.NewInt(9000000))
+	calcDifficultyEip2384 = makeDifficultyCalculator(nil)
 
 	// calcDifficultyConstantinople is the difficulty adjustment algorithm for Constantinople.
 	// It returns the difficulty that a new block should have when created at time given the
 	// parent block's time and difficulty. The calculation uses the Byzantium rules, but with
 	// bomb offset 5M.
 	// Specification EIP-1234: https://eips.ethereum.org/EIPS/eip-1234
-	calcDifficultyConstantinople = makeDifficultyCalculator(big.NewInt(5000000))
+	calcDifficultyConstantinople = makeDifficultyCalculator(nil)
 
 	// calcDifficultyByzantium is the difficulty adjustment algorithm. It returns
 	// the difficulty that a new block should have when created at time given the
@@ -355,6 +355,45 @@ var (
 // the difficulty is calculated with Byzantium rules, which differs from Homestead in
 // how uncles affect the calculation
 func makeDifficultyCalculator(bombDelay *big.Int) func(time uint64, parent *types.Header) *big.Int {
+	if bombDelay == nil { // check for diff bomb disarming
+		return func(time uint64, parent *types.Header) *big.Int {
+			// https://github.com/ethereum/EIPs/issues/100.
+			// algorithm:
+			// diff = (parent_diff +
+			//         (parent_diff / 2048 * max((2 if len(parent.uncles) else 1) - ((timestamp - parent.timestamp) // 9), -99))
+			//        ) + 2^(periodCount - 2)
+
+			bigTime := new(big.Int).SetUint64(time)
+			bigParentTime := new(big.Int).SetUint64(parent.Time)
+
+			// holds intermediate values to make the algo easier to read & audit
+			x := new(big.Int)
+			y := new(big.Int)
+
+			// (2 if len(parent_uncles) else 1) - (block_timestamp - parent_timestamp) // 9
+			x.Sub(bigTime, bigParentTime)
+			x.Div(x, big9)
+			if parent.UncleHash == types.EmptyUncleHash {
+				x.Sub(big1, x)
+			} else {
+				x.Sub(big2, x)
+			}
+			// max((2 if len(parent_uncles) else 1) - (block_timestamp - parent_timestamp) // 9, -99)
+			if x.Cmp(bigMinus99) < 0 {
+				x.Set(bigMinus99)
+			}
+			// parent_diff + (parent_diff / 2048 * max((2 if len(parent.uncles) else 1) - ((timestamp - parent.timestamp) // 9), -99))
+			y.Div(parent.Difficulty, params.DifficultyBoundDivisor)
+			x.Mul(y, x)
+			x.Add(parent.Difficulty, x)
+
+			// minimum difficulty can ever be (before exponential factor)
+			if x.Cmp(params.MinimumDifficulty) < 0 {
+				x.Set(params.MinimumDifficulty)
+			}
+			return x
+		}
+	}
 	// Note, the calculations below looks at the parent number, which is 1 below
 	// the block number. Thus we remove one from the delay given
 	bombDelayFromParent := new(big.Int).Sub(bombDelay, big1)
