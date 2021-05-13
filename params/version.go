@@ -22,9 +22,9 @@ import (
 
 const (
 	VersionMajor = 1               // Major version component of the current release
-	VersionMinor = 4               // Minor version component of the current release
-	VersionPatch = 8               // Patch version component of the current release
-	VersionMeta  = "Ether1-Kepler-UpstreamForks" // Version metadata to append to the version string
+	VersionMinor = 5               // Minor version component of the current release
+	VersionPatch = 0               // Patch version component of the current release
+	VersionMeta  = "EthoProtocol--Atlas" // Version metadata to append to the version string
 )
 
 // Version holds the textual version string.

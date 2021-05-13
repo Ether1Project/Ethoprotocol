@@ -267,34 +267,7 @@ func doInit(out io.Writer, repoRoot string, empty bool, nBitsForKeypair int, con
 		}
 	}
 
-	// Create swarm key for ethoFS private network
-	err := createSwarmKey(repoRoot)
-	if err != nil {
-		log.Error("ethoFS - error creating swarm key", "error", err)
-		return err
-	}
-
 	return initializeIpnsKeyspace(repoRoot)
-}
-
-func createSwarmKey(repoRoot string) error {
-	f, err := os.Create(repoRoot + "/swarm.key")
-	if err != nil {
-		return err
-	}
-	_, err = f.WriteString("/key/swarm/psk/1.0.0/\n/base16/\n38307a74b2176d0054ffa2864e31ee22d0fc6c3266dd856f6d41bddf14e2ad63")
-	if err != nil {
-		f.Close()
-		return err
-	}
-
-	log.Info("ethoFS - swarm key has been created successfully")
-	err = f.Close()
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func checkWritable(dir string) error {
@@ -573,13 +546,11 @@ func initializeEthofsNode(nodeType string) (icore.CoreAPI, *core.IpfsNode) {
 	log.Info("ethoFS - node initialization complete")
 
 	bootstrapNodes := []string{
-		"/ip4/164.68.107.82/tcp/4001/ipfs/QmeG81bELkgLBZFYZc53ioxtvRS8iNVzPqxUBKSuah2rcQ",
-		"/ip4/164.68.98.94/tcp/4001/ipfs/QmRYw68MzD4jPvner913mLWBdFfpPfNUx8SRFjiUCJNA4f",
-		"/ip4/51.38.131.241/tcp/4001/ipfs/QmaGGSUqoFpv6wuqvNKNBsxDParVuGgV3n3iPs2eVWeSN4",
-		"/ip4/164.68.108.54/tcp/4001/ipfs/QmRwQ49Zknc2dQbywrhT8ArMDS9JdmnEyGGy4mZ1wDkgaX",
-		"/ip4/51.77.150.202/tcp/4001/ipfs/QmUEy4ScCYCgP6GRfVgrLDqXfLXnUUh4eKaS1fDgaCoGQJ",
-		"/ip4/51.79.70.144/tcp/4001/ipfs/QmTcwcKqKcnt84wCecShm1zdz1KagfVtqopg1xKLiwVJst",
-		"/ip4/142.44.246.43/tcp/4001/ipfs/QmPW8zExrEeno85Us3H1bk68rBo7N7WEhdpU9pC9wjQxgu",
+                "/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
+		"/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa",
+		"/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb",
+		"/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt",
+		"/ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ",
 	}
 
 	connectToPeers(ctx, ipfs, bootstrapNodes)
