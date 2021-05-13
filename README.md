@@ -1,6 +1,6 @@
-## Go Ether-1
+## Go Etho (Formerly Go Ether-1)
 
-Official Golang implementation of the Ether-1 protocol.
+Official Golang implementation of The Etho Protocol.
 
 [![API Reference](
 https://camo.githubusercontent.com/915b7be44ada53c290eb157634330494ebe3e30a/68747470733a2f2f676f646f632e6f72672f6769746875622e636f6d2f676f6c616e672f6764646f3f7374617475732e737667
@@ -29,7 +29,7 @@ make all
 
 ## Executables
 
-The go-ethereum project comes with several wrappers/executables found in the `cmd`
+The Etho Protocol project comes with several wrappers/executables found in the `cmd`
 directory.
 
 |    Command    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -49,9 +49,9 @@ Going through all the possible command line flags is out of scope here (please c
 but we've enumerated a few common parameter combos to get you up to speed quickly
 on how you can run your own `geth` instance.
 
-### Full node on the main Ethereum network
+### Full node on the main Etho Protocol network
 
-By far the most common scenario is people wanting to simply interact with the Ethereum
+By far the most common scenario is people wanting to simply interact with The Etho Protocol
 network: create accounts; transfer funds; deploy and interact with contracts. For this
 particular use-case the user doesn't care about years-old historical data, so we can
 fast-sync quickly to the current state of the network. To do so:
@@ -70,83 +70,9 @@ This command will:
    This tool is optional and if you leave it out you can always attach to an already running
    `geth` instance with `geth attach`.
 
-### A Full node on the Görli test network
-
-Transitioning towards developers, if you'd like to play around with creating Ethereum
-contracts, you almost certainly would like to do that without any real money involved until
-you get the hang of the entire system. In other words, instead of attaching to the main
-network, you want to join the **test** network with your node, which is fully equivalent to
-the main network, but with play-Ether only.
-
-```shell
-$ geth --goerli console
-```
-
-The `console` subcommand has the exact same meaning as above and they are equally
-useful on the testnet too. Please, see above for their explanations if you've skipped here.
-
-Specifying the `--goerli` flag, however, will reconfigure your `geth` instance a bit:
-
- * Instead of connecting the main Ethereum network, the client will connect to the Görli
-   test network, which uses different P2P bootnodes, different network IDs and genesis
-   states.
- * Instead of using the default data directory (`~/.ethereum` on Linux for example), `geth`
-   will nest itself one level deeper into a `goerli` subfolder (`~/.ethereum/goerli` on
-   Linux). Note, on OSX and Linux this also means that attaching to a running testnet node
-   requires the use of a custom endpoint since `geth attach` will try to attach to a
-   production node endpoint by default, e.g.,
-   `geth attach <datadir>/goerli/geth.ipc`. Windows users are not affected by
-   this.
-
-*Note: Although there are some internal protective measures to prevent transactions from
-crossing over between the main network and test network, you should make sure to always
-use separate accounts for play-money and real-money. Unless you manually move
-accounts, `geth` will by default correctly separate the two networks and will not make any
-accounts available between them.*
-
-### Full node on the Rinkeby test network
-
-Go Ethereum also supports connecting to the older proof-of-authority based test network
-called [*Rinkeby*](https://www.rinkeby.io) which is operated by members of the community.
-
-```shell
-$ geth --rinkeby console
-```
-
-### Full node on the Ropsten test network
-
-In addition to Görli and Rinkeby, Geth also supports the ancient Ropsten testnet. The
-Ropsten test network is based on the Ethash proof-of-work consensus algorithm. As such,
-it has certain extra overhead and is more susceptible to reorganization attacks due to the
-network's low difficulty/security.
-
-```shell
-$ geth --ropsten console
-```
-
-*Note: Older Geth configurations store the Ropsten database in the `testnet` subdirectory.*
-
-### Configuration
-
-As an alternative to passing the numerous flags to the `geth` binary, you can also pass a
-configuration file via:
-
-```shell
-$ geth --config /path/to/your_config.toml
-```
-
-To get an idea how the file should look like you can use the `dumpconfig` subcommand to
-export your existing configuration:
-
-```shell
-$ geth --your-favourite-flags dumpconfig
-```
-
-*Note: This works only with `geth` v1.6.0 and above.*
-
 #### Docker quick start
 
-One of the quickest ways to get Ethereum up and running on your machine is by using
+One of the quickest ways to get The Etho Protocol up and running on your machine is by using
 Docker:
 
 ```shell
@@ -166,10 +92,12 @@ accessible from the outside.
 
 ### Programmatically interfacing `geth` nodes
 
+
 As a developer, sooner rather than later you'll want to start interacting with `geth` and the
 Ethereum network via your own programs and not manually through the console. To aid
 this, `geth` has built-in support for a JSON-RPC based APIs ([standard APIs](https://eth.wiki/json-rpc/API)
 and [`geth` specific APIs](https://geth.ethereum.org/docs/rpc/server)).
+
 These can be exposed via HTTP, WebSockets and IPC (UNIX sockets on UNIX based
 platforms, and named pipes on Windows).
 
@@ -201,7 +129,7 @@ can reuse the same connection for multiple requests!
 
 **Note: Please understand the security implications of opening up an HTTP/WS based
 transport before doing so! Hackers on the internet are actively trying to subvert
-Ethereum nodes with exposed APIs! Further, all browser tabs can access locally
+Etho Protocol nodes with exposed APIs! Further, all browser tabs can access locally
 running web servers, so malicious web pages could try to subvert locally available
 APIs!**
 
@@ -300,7 +228,7 @@ also need to configure a miner to process transactions and create new blocks for
 
 #### Running a private miner
 
-Mining on the public Ethereum network is a complex task as it's only feasible using GPUs,
+Mining on the public Etho Protocol network is a complex task as it's only feasible using GPUs,
 requiring an OpenCL or CUDA enabled `ethminer` instance. For information on such a
 setup, please consult the [EtherMining subreddit](https://www.reddit.com/r/EtherMining/)
 and the [ethminer](https://github.com/ethereum-mining/ethminer) repository.
@@ -321,11 +249,11 @@ by changing the default gas limit blocks converge to (`--miner.targetgaslimit`) 
 transactions are accepted at (`--miner.gasprice`).
 
 
-## Kepler Updates (ethoFS enabled nodes)
+## Etho Protocol Decentralized Data Storage Nodes (Collateralized Nodes)
 
-Initializing, configuring and running an ethoFS node with the Kepler update is a three step process.
+Initializing, configuring and running an Etho node with decentralized storage capabilities (ethoFS) enabled is a three step process.
 
-All three node types are available to initialize, config and run via the CLI utilizing the --ethofs flag to designate node type. Explore the [Ether-1 Node Dashboard ](https://nodes.ether1.org) for details and requirements for deploying each ethofs enabled node type.
+All three node types are available to initialize, config and run via the CLI utilizing the --ethofs flag to designate node type. Explore the [Etho Protocol Node Dashboard ](https://nodes.ether1.org) for details and requirements for deploying each ethofs enabled node type.
 
 #### Node Types:
 
@@ -358,12 +286,8 @@ $ geth --ethofs=mn console
 Thank you for considering to help out with the source code! We welcome contributions
 from anyone on the internet, and are grateful for even the smallest of fixes!
 
-If you'd like to contribute to go-ethereum, please fork, fix, commit and send a pull request
-for the maintainers to review and merge into the main code base. If you wish to submit
-more complex changes though, please check up with the core devs first on [our gitter channel](https://gitter.im/ethereum/go-ethereum)
-to ensure those changes are in line with the general philosophy of the project and/or get
-some early feedback which can make both your efforts much lighter as well as our review
-and merge procedures quick and simple.
+If you'd like to contribute to The Etho Protocol, please fork, fix, commit and send a pull request
+for the maintainers to review and merge into the main code base.
 
 Please make sure your contributions adhere to our coding guidelines:
 
