@@ -40,26 +40,26 @@ require (
 	github.com/holiman/uint256 v1.2.0
 	github.com/huin/goupnp v1.0.2
 	github.com/influxdata/influxdb v1.8.3
+	github.com/influxdata/influxdb-client-go/v2 v2.4.0
+	github.com/influxdata/line-protocol v0.0.0-20210311194329-9aa0e372d097 // indirect
 	github.com/ipfs/go-cid v0.0.7
 	github.com/ipfs/go-cidutil v0.0.2
 	github.com/ipfs/go-ipfs v0.8.0
 	github.com/ipfs/go-ipfs-config v0.12.0
 	github.com/ipfs/go-ipfs-files v0.0.8
 	github.com/ipfs/interface-go-ipfs-core v0.4.0
+	github.com/jackpal/go-nat-pmp v1.0.2
+	github.com/jedisct1/go-minisign v0.0.0-20190909160543-45766022959e
+	github.com/julienschmidt/httprouter v1.2.0
+	github.com/karalabe/usb v0.0.0-20211005121534-4c5740d64559
+	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/libp2p/go-libp2p-core v0.8.5
 	github.com/libp2p/go-libp2p-peerstore v0.2.6
 	github.com/libp2p/go-socket-activation v0.0.2
-	github.com/multiformats/go-multiaddr v0.3.1
-	github.com/multiformats/go-multiaddr-net v0.2.0
-	github.com/influxdata/influxdb-client-go/v2 v2.4.0
-	github.com/influxdata/line-protocol v0.0.0-20210311194329-9aa0e372d097 // indirect
-	github.com/jackpal/go-nat-pmp v1.0.2-0.20160603034137-1fa385a6f458
-	github.com/jedisct1/go-minisign v0.0.0-20190909160543-45766022959e
-	github.com/julienschmidt/httprouter v1.2.0
-	github.com/karalabe/usb v0.0.0-20190919080040-51dc0efba356
-	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.8
 	github.com/mattn/go-isatty v0.0.12
+	github.com/multiformats/go-multiaddr v0.3.1
+	github.com/multiformats/go-multiaddr-net v0.2.0
 	github.com/naoina/go-stringutil v0.1.0 // indirect
 	github.com/naoina/toml v0.1.2-0.20170918210437-9fafd6967416
 	github.com/olekukonko/tablewriter v0.0.5
