@@ -38,6 +38,7 @@ var (
 	receiptStatusSuccessfulRLP = []byte{0x01}
 )
 
+// This error is returned when a typed receipt is decoded, but the string is empty.
 var errEmptyTypedReceipt = errors.New("empty typed receipt bytes")
 
 const (
@@ -140,10 +141,6 @@ func (r *Receipt) EncodeRLP(w io.Writer) error {
 	if r.Type == LegacyTxType {
 		return rlp.Encode(w, data)
 	}
-	// It's an EIP-2718 typed TX receipt.
-	if r.Type != AccessListTxType {
-		return ErrTxTypeNotSupported
-	}
 	buf := encodeBufferPool.Get().(*bytes.Buffer)
 	defer encodeBufferPool.Put(buf)
 	buf.Reset()
@@ -179,7 +176,7 @@ func (r *Receipt) DecodeRLP(s *rlp.Stream) error {
 			return errEmptyTypedReceipt
 		}
 		r.Type = b[0]
-		if r.Type == AccessListTxType {
+		if r.Type == AccessListTxType || r.Type == DynamicFeeTxType {
 			var dec receiptRLP
 			if err := rlp.DecodeBytes(b[1:], &dec); err != nil {
 				return err
@@ -344,6 +341,9 @@ func (rs Receipts) EncodeIndex(i int, w *bytes.Buffer) {
 		rlp.Encode(w, data)
 	case AccessListTxType:
 		w.WriteByte(AccessListTxType)
+		rlp.Encode(w, data)
+	case DynamicFeeTxType:
+		w.WriteByte(DynamicFeeTxType)
 		rlp.Encode(w, data)
 	default:
 		// For unsupported types, write nothing. Since this is for
