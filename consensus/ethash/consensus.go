@@ -713,7 +713,7 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		masternodeReward = big.NewInt(0.65e+18)
 		developmentReward = big.NewInt(0.35e+18)
 	} else if (header.Number.Int64() >= 8130000) && (header.Number.Int64() < 9000000) {
-		blockReward = big.NewInt(0.45e+18)
+		blockReward = big.NewInt(0.35e+18)
 		masternodeReward = big.NewInt(0.65e+18)
 		developmentReward = big.NewInt(0.35e+18)
 	} else if (header.Number.Int64() >= 9000000) && (header.Number.Int64() < 10000000) {
