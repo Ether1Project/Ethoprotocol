@@ -341,17 +341,14 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 	case config.IsLondon(next):
 		return calcDifficultyEip3554(time, parent)
 	case config.IsMuirGlacier(next):
-                forktest := big.NewInt(8150000)
-                if forktest.Cmp(next) <= 0 { // if next > 8_150_000
-                        params.MinimumDifficulty = big.NewInt(200000000000)
-                } else {
-                        // have to reset this here because diff is set to
-			// 200G by default, and between 2_700_000 and 8_150_000
-			// min diff is 131072.
+		if next.Cmp(big.NewInt(8150000) > 0 {
+	                params.MinimumDifficulty = big.NewInt(200000000000)
+		} else if next.Cmp(big.NewInt(8250000) > 0 {
+	                params.MinimumDifficulty = big.NewInt(5000000000)
+		} else {
 			// this fixes invalid difficulty when syncing
                         params.MinimumDifficulty = big.NewInt(131072)
                 }
-
 		return calcDifficultyEip2384(time, parent)
 	case config.IsConstantinople(next):
 		return calcDifficultyConstantinople(time, parent)
