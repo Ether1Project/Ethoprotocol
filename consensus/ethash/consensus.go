@@ -341,9 +341,9 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 	case config.IsLondon(next):
 		return calcDifficultyEip3554(time, parent)
 	case config.IsMuirGlacier(next):
-		if next.Cmp(big.NewInt(8150000) > 0 {
+		if next.Cmp(big.NewInt(8150000)) > 0 {
 	                params.MinimumDifficulty = big.NewInt(200000000000)
-		} else if next.Cmp(big.NewInt(8250000) > 0 {
+		} else if next.Cmp(big.NewInt(8250000)) > 0 {
 	                params.MinimumDifficulty = big.NewInt(5000000000)
 		} else {
 			// this fixes invalid difficulty when syncing
