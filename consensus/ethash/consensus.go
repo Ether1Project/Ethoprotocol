@@ -341,6 +341,12 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 	case config.IsLondon(next):
 		return calcDifficultyEip3554(time, parent)
 	case config.IsMuirGlacier(next):
+                if next.Cmp(big.NewInt(8150000)) > 0 {
+                        params.MinimumDifficulty = big.NewInt(200000000000)
+                } else {
+                        // this fixes invalid difficulty when syncing
+                        params.MinimumDifficulty = big.NewInt(131072)
+                }
 		return calcDifficultyEip2384(time, parent)
 	case config.IsConstantinople(next):
 		return calcDifficultyConstantinople(time, parent)
