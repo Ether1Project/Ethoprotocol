@@ -62,6 +62,12 @@ var MainnetBootnodes = []string{
 	"enode://ff3669514ad3a68e2e8aaee40d7a9fd8723ee0a7cb4492dc18c89a13f0d9b77b9fd0be950de1c45a9afd8f8cfbd4b4f13d215454fa2c18c654c54984a705483f@5.189.157.250:30305",
 }
 
+var HyperCubeBootnodes = []string{
+	"enode://411763141c2881a6d4f5e388deb2d271bc9550378ea0ada3df996966e86e5816cda9fb6c038e06a082ce90a1026f392be57a1293bcee2e749200b54f3bed2a2e@51.15.192.191:30305", // CuBeZero public node
+	"enode://2b51379e575ad8d1a76d3e9e36b8e6d68c3c4a1ea639b2952f3ff1443c15a592b364f09a3e426e8836c42bcd7b88ed48d39f2abc080f349b077fb5e3e443a8e1@72.137.255.181:30306", // etho.black 1
+	"enode://e6ed7c9cf13577fa28cb478607fd9321cb5373633ba6dfafb0fd200311135449b32098d53d12d0403da75808757f47573fef34b94b889b1041a217f168c7fdba@72.137.255.179:56136", // etho.black 2
+}
+
 // RopstenBootnodes are the enode URLs of the P2P bootstrap nodes running on the
 // Ropsten test network.
 var RopstenBootnodes = []string{
