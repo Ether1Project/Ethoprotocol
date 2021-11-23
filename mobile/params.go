@@ -32,6 +32,14 @@ func MainnetGenesis() string {
 	return ""
 }
 
+func HyperCubeGenesis() string {
+	enc, err := json.Marshal(core.DefaultHyperCubeGenesisBlock())
+	if err != nil {
+		panic(err)
+	}
+	return string(enc)
+}
+
 // RopstenGenesis returns the JSON spec to use for the Ropsten test network.
 func RopstenGenesis() string {
 	enc, err := json.Marshal(core.DefaultRopstenGenesisBlock())

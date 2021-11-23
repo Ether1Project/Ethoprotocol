@@ -33,6 +33,7 @@ var (
 	RopstenGenesisHash = common.HexToHash("0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d")
 	RinkebyGenesisHash = common.HexToHash("0x6341fd3daf94b748c72ced5a5b26028f2474f5f00d824504e4fa37a75767e177")
 	GoerliGenesisHash  = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
+        HyperCubeGenesisHash = common.HexToHash("0xbf289100224ae9e27375b93509ff30b7624af5e8ae3eae472e814a2dd6ad1419");
 )
 
 // TrustedCheckpoints associates each known checkpoint with the genesis hash of
@@ -43,6 +44,7 @@ var TrustedCheckpoints = map[common.Hash]*TrustedCheckpoint{
 	RopstenGenesisHash: RopstenTrustedCheckpoint,
 	RinkebyGenesisHash: RinkebyTrustedCheckpoint,
 	GoerliGenesisHash:  GoerliTrustedCheckpoint,
+	HyperCubeGenesisHash: HyperCubeTrustedCheckpoint,
 }
 
 // CheckpointOracles associates each known checkpoint oracles with the genesis hash of
@@ -98,6 +100,37 @@ var (
 			},
 			Threshold: 2, */
 	}
+	// HyperCubeChainConfig is the chain parameters to run a node on the main network.
+	HyperCubeChainConfig = &ChainConfig{
+		ChainID:             big.NewInt(27292),
+		HomesteadBlock:      big.NewInt(0),
+		DAOForkBlock:        nil,
+		DAOForkSupport:      true,
+		EIP150Block:         big.NewInt(0),
+		EIP150Hash:          common.HexToHash("0x0000000000000000000000000000000000000000000000000000000000000000"),
+		EIP155Block:         big.NewInt(0),
+		EIP158Block:         big.NewInt(0),
+		ByzantiumBlock:      big.NewInt(0),
+		RobinHoodBlock:      big.NewInt(0),
+		ConstantinopleBlock: big.NewInt(0),
+		PetersburgBlock:     big.NewInt(0),
+		IstanbulBlock:       big.NewInt(0),
+		MuirGlacierBlock:    big.NewInt(0),
+		BerlinBlock:         nil,
+		LondonBlock:         nil,
+		Ethash:              new(EthashConfig),
+	}
+
+	// HyperCubeTrustedCheckpoint contains the light client trusted checkpoint for the main network.
+	HyperCubeTrustedCheckpoint = &TrustedCheckpoint{
+//		SectionIndex: 395,
+//		SectionHead:  common.HexToHash("0xbfca95b8c1de014e252288e9c32029825fadbff58285f5b54556525e480dbb5b"),
+//		CHTRoot:      common.HexToHash("0x2ccf3dbb58eb6375e037fdd981ca5778359e4b8fa0270c2878b14361e64161e7"),
+//		BloomRoot:    common.HexToHash("0x2d46ec65a6941a2dc1e682f8f81f3d24192021f492fdf6ef0fdd51acb0f4ba0f"),
+	}
+
+	// HyperCubeCheckpointOracle contains a set of configs for the main network oracle.
+	HyperCubeCheckpointOracle = &CheckpointOracleConfig{}
 
 	// RopstenChainConfig contains the chain parameters to run a node on the Ropsten test network.
 	RopstenChainConfig = &ChainConfig{
