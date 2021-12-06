@@ -353,17 +353,24 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 	case config.IsMuirGlacier(next):
 	    // this fixes the difficulty for v1.6.0
         fmt.Printf("### func CalcDifficulty: Current %d\n",next);
-        if next.Cmp(sb) > 0 {
-            params.MinimumDifficulty = big.NewInt(250000)
-        }
-        if next.Cmp(big.NewInt(8150000)) > 0 {
-            params.MinimumDifficulty = big.NewInt(200000000000)
+        if (config.ChainID.Int64()==27292) {
+            if next.Cmp(big.NewInt(230000)) > 0 {
+                params.MinimumDifficulty = big.NewInt(50000)
+            } else {
+                // this fixes invalid difficulty when syncing
+                params.MinimumDifficulty = big.NewInt(131072)
+            }
         } else {
-            // this fixes invalid difficulty when syncing
-            params.MinimumDifficulty = big.NewInt(131072)
+            if next.Cmp(big.NewInt(8300000)) > 0 {
+                params.MinimumDifficulty = big.NewInt(131072)
+            } else if next.Cmp(big.NewInt(8150000)) > 0 {
+                params.MinimumDifficulty = big.NewInt(200000000000)
+            } else {
+                // this fixes invalid difficulty when syncing
+                params.MinimumDifficulty = big.NewInt(131072)
+            }
         }
         fmt.Printf("### func CalcDifficulty: Diff %d\n",params.MinimumDifficulty);
-
 		return calcDifficultyEip2384(time, parent)
 	case config.IsConstantinople(next):
 		return calcDifficultyConstantinople(time, parent)
@@ -791,20 +798,26 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	state.AddBalance(header.Coinbase, reward)
 	// Development Fund Address
 	// From 1.6.0 we are moving to the multi-sig wallet
-    var sb=big.NewInt(0);
     if (config.ChainID.Int64()==27292) {
-        sb=big.NewInt(225000);
+        if (header.Number.Int64() >= 230000) {
+            fmt.Printf("### Post hard fork %d\n", header.Number.Int64());
+            state.AddBalance(common.HexToAddress("0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46"), developmentReward)
+        } else {
+            fmt.Printf("### Pre hard fork %d\n", header.Number.Int64());
+            state.AddBalance(common.HexToAddress("0xE2c8cbEc30c8513888F7A95171eA836f8802d981"), developmentReward)
+        }
+
     } else {
-        sb=big.NewInt(8300000);
+        if (header.Number.Int64() >= 88300000) {
+            fmt.Printf("### Post hard fork %d\n", header.Number.Int64());
+            state.AddBalance(common.HexToAddress("0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46"), developmentReward)
+        } else {
+            fmt.Printf("### Pre hard fork %d\n", header.Number.Int64());
+            state.AddBalance(common.HexToAddress("0xE2c8cbEc30c8513888F7A95171eA836f8802d981"), developmentReward)
+        }
     }
-    fmt.Printf("### Switch block %d\n",sb);
 
 
-	if (header.Number.Int64() >= sb.Int64()) {
-        state.AddBalance(common.HexToAddress("0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46"), developmentReward)
-	} else {
-    	state.AddBalance(common.HexToAddress("0xE2c8cbEc30c8513888F7A95171eA836f8802d981"), developmentReward)
-	}
 
 	// Masternode Fund address
 	state.AddBalance(common.HexToAddress("0xE19363Ffb51C62bEECd6783A2c9C5bfF5D4679ac"), masternodeReward)
