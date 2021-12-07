@@ -337,14 +337,6 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 
 	next := new(big.Int).Add(parent.Number, big1)
 
-    var sb=big.NewInt(0);
-    if (config.ChainID.Int64()==27292) {
-        sb=big.NewInt(225000);
-    } else {
-        sb=big.NewInt(8300000);
-    }
-    fmt.Printf("### func CalcDifficulty: Switch block %d\n",sb);
-
 	switch {
 	case config.IsCatalyst(next):
 		return big.NewInt(1)
