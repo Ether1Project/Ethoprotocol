@@ -352,9 +352,8 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
 		return calcDifficultyEip3554(time, parent)
 	case config.IsMuirGlacier(next):
 	    // this fixes the difficulty for v1.6.0
-        fmt.Printf("### func CalcDifficulty: Current %d\n",next);
         if (config.ChainID.Int64()==27292) {
-            if next.Cmp(big.NewInt(230000)) > 0 {
+            if next.Cmp(big.NewInt(238000)) > 0 {
                 params.MinimumDifficulty = big.NewInt(50000)
             } else {
                 // this fixes invalid difficulty when syncing
@@ -370,7 +369,7 @@ func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Heade
                 params.MinimumDifficulty = big.NewInt(131072)
             }
         }
-        fmt.Printf("### func CalcDifficulty: Diff %d\n",params.MinimumDifficulty);
+        fmt.Printf("### func CalcDifficulty: Diff %d, Height: %d\n",params.MinimumDifficulty, next);
 		return calcDifficultyEip2384(time, parent)
 	case config.IsConstantinople(next):
 		return calcDifficultyConstantinople(time, parent)
@@ -799,7 +798,7 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 	// Development Fund Address
 	// From 1.6.0 we are moving to the multi-sig wallet
     if (config.ChainID.Int64()==27292) {
-        if (header.Number.Int64() >= 230000) {
+        if (header.Number.Int64() >= 238000) {
             fmt.Printf("### Post hard fork %d\n", header.Number.Int64());
             state.AddBalance(common.HexToAddress("0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46"), developmentReward)
         } else {
@@ -808,7 +807,7 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
         }
 
     } else {
-        if (header.Number.Int64() >= 88300000) {
+        if (header.Number.Int64() >= 8300000) {
             fmt.Printf("### Post hard fork %d\n", header.Number.Int64());
             state.AddBalance(common.HexToAddress("0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46"), developmentReward)
         } else {
