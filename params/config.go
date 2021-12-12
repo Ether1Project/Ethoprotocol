@@ -75,6 +75,7 @@ var (
 		PetersburgBlock:     big.NewInt(8_000_000),
 		IstanbulBlock:       big.NewInt(8_000_000),
 		MuirGlacierBlock:    big.NewInt(8_000_000),
+		NewHorizonBlock:     big.NewInt(8_300_000),
 		BerlinBlock:         nil,
 		LondonBlock:         nil,
 		Ethash:              new(EthashConfig),
@@ -148,6 +149,7 @@ var (
 		PetersburgBlock:     big.NewInt(4_939_394),
 		IstanbulBlock:       big.NewInt(6_485_846),
 		MuirGlacierBlock:    big.NewInt(7_117_117),
+		NewHorizonBlock:     big.NewInt(8_250_000),
 		BerlinBlock:         big.NewInt(9_812_189),
 		LondonBlock:         big.NewInt(10_499_401),
 		Ethash:              new(EthashConfig),
@@ -190,6 +192,7 @@ var (
 		PetersburgBlock:     nil,
 		IstanbulBlock:       nil,
 		MuirGlacierBlock:    nil,
+		NewHorizonBlock:     nil,
 		BerlinBlock:         big.NewInt(8_290_928),
 		LondonBlock:         big.NewInt(8_897_988),
 		Clique: &CliqueConfig{
@@ -232,6 +235,7 @@ var (
 		PetersburgBlock:     big.NewInt(0),
 		IstanbulBlock:       big.NewInt(1_561_651),
 		MuirGlacierBlock:    nil,
+		NewHorizonBlock:     nil,
 		BerlinBlock:         big.NewInt(4_460_644),
 		LondonBlock:         big.NewInt(5_062_605),
 		Clique: &CliqueConfig{
@@ -266,16 +270,16 @@ var (
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0),  big.NewInt(0), nil, nil, nil, new(EthashConfig), nil}
+	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0),  big.NewInt(0), nil, nil, nil, nil, new(EthashConfig), nil}
 
 	// AllCliqueProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the Clique consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
+	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
 
-	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, new(EthashConfig), nil}
+	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, new(EthashConfig), nil}
 	TestRules       = TestChainConfig.Rules(new(big.Int))
 )
 
@@ -353,6 +357,7 @@ type ChainConfig struct {
 	PetersburgBlock     *big.Int `json:"petersburgBlock,omitempty"`     // Petersburg switch block (nil = same as Constantinople)
 	IstanbulBlock       *big.Int `json:"istanbulBlock,omitempty"`       // Istanbul switch block (nil = no fork, 0 = already on istanbul)
 	MuirGlacierBlock    *big.Int `json:"muirGlacierBlock,omitempty"`    // Eip-2384 (bomb delay) switch block (nil = no fork, 0 = already activated)
+	NewHorizonBlock     *big.Int `json:"newHorizonBlock,omitempty"`     // NewHorizon switch block (nil = no fork, 0 = already activated)
 	BerlinBlock         *big.Int `json:"berlinBlock,omitempty"`         // Berlin switch block (nil = no fork, 0 = already on berlin)
 	LondonBlock         *big.Int `json:"londonBlock,omitempty"`         // London switch block (nil = no fork, 0 = already on london)
 
@@ -407,6 +412,7 @@ func (c *ChainConfig) String() string {
 		c.PetersburgBlock,
 		c.IstanbulBlock,
 		c.MuirGlacierBlock,
+		c.NewHorizonBlock,
 		c.BerlinBlock,
 		c.LondonBlock,
 		engine,
@@ -456,6 +462,11 @@ func (c *ChainConfig) IsConstantinople(num *big.Int) bool {
 // IsMuirGlacier returns whether num is either equal to the Muir Glacier (EIP-2384) fork block or greater.
 func (c *ChainConfig) IsMuirGlacier(num *big.Int) bool {
 	return isForked(c.MuirGlacierBlock, num)
+}
+
+// IsNewHorizon returns whether num is either equal to the NewHorizon fork block or greater.
+func (c *ChainConfig) IsNewHorizon(num *big.Int) bool {
+	return isForked(c.NewHorizonBlock, num)
 }
 
 // IsPetersburg returns whether num is either
@@ -524,6 +535,7 @@ func (c *ChainConfig) CheckConfigForkOrder() error {
 		{name: "petersburgBlock", block: c.PetersburgBlock},
 		{name: "istanbulBlock", block: c.IstanbulBlock},
 		{name: "muirGlacierBlock", block: c.MuirGlacierBlock, optional: true},
+		{name: "newHorizonBlock", block: c.NewHorizonBlock},
 		{name: "berlinBlock", block: c.BerlinBlock},
 		{name: "londonBlock", block: c.LondonBlock},
 	} {
@@ -575,6 +587,9 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 	}
 	if isForkIncompatible(c.RobinHoodBlock, newcfg.RobinHoodBlock, head) {
 		return newCompatError("RobinHood fork block", c.RobinHoodBlock, newcfg.RobinHoodBlock)
+	}
+	if isForkIncompatible(c.NewHorizonBlock, newcfg.NewHorizonBlock, head) {
+		return newCompatError("NewHorizon fork block", c.NewHorizonBlock, newcfg.NewHorizonBlock)
 	}
 	if isForkIncompatible(c.ConstantinopleBlock, newcfg.ConstantinopleBlock, head) {
 		return newCompatError("Constantinople fork block", c.ConstantinopleBlock, newcfg.ConstantinopleBlock)
@@ -665,7 +680,7 @@ type Rules struct {
 	ChainID                                                              *big.Int
 	IsHomestead, IsEIP150, IsEIP155, IsEIP158                            bool
 	IsByzantium, IsConstantinople, IsPetersburg, IsRobinHood, IsIstanbul, IsMuirGlacier bool
-	IsBerlin, IsLondon, IsCatalyst                          bool
+	IsBerlin, IsLondon, IsCatalyst, IsNewHorizon                          bool
 }
 
 // Rules ensures c's ChainID is not nil.
@@ -685,6 +700,7 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 		IsConstantinople: c.IsConstantinople(num),
 		IsPetersburg:     c.IsPetersburg(num),
 		IsIstanbul:       c.IsIstanbul(num),
+		IsNewHorizon:     c.IsNewHorizon(num),
 		IsBerlin:         c.IsBerlin(num),
 		IsLondon:         c.IsLondon(num),
 		IsCatalyst:       c.IsCatalyst(num),
