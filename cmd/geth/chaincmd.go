@@ -68,6 +68,7 @@ It expects the genesis file as argument.`,
 			utils.RopstenFlag,
 			utils.RinkebyFlag,
 			utils.GoerliFlag,
+			utils.HyperCubeFlag,
 		},
 		Category: "BLOCKCHAIN COMMANDS",
 		Description: `

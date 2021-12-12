@@ -248,6 +248,8 @@ func (g *Genesis) configOrDefault(ghash common.Hash) *params.ChainConfig {
 		return params.RinkebyChainConfig
 	case ghash == params.GoerliGenesisHash:
 		return params.GoerliChainConfig
+	case ghash == params.HyperCubeGenesisHash:
+		return params.HyperCubeChainConfig
 	default:
 		return params.AllEthashProtocolChanges
 	}
@@ -357,6 +359,18 @@ func DefaultGenesisBlock() *Genesis {
 		ExtraData:  hexutil.MustDecode("0x6465627420697320736c6176657279"),
 		GasLimit:   3141592,
 		Difficulty: big.NewInt(200000000000),
+                Alloc: nil,
+	}
+}
+
+// DefaultHyperCubeGenesisBlock returns the Ether-1 main net genesis block.
+func DefaultHyperCubeGenesisBlock() *Genesis {
+	return &Genesis{
+		Config:     params.HyperCubeChainConfig,
+		Nonce:      0x0000000000000042,
+		ExtraData:  hexutil.MustDecode("0x6465627420697320736c6176657279"),
+		GasLimit:   3141592,
+		Difficulty: big.NewInt(2097152),
                 Alloc: nil,
 	}
 }
