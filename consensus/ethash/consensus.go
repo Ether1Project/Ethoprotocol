@@ -350,9 +350,9 @@ func (ethash *Ethash) CalcDifficulty(chain consensus.ChainHeaderReader, time uin
 func CalcDifficulty(config *params.ChainConfig, time uint64, parent *types.Header) *big.Int {
 	next := new(big.Int).Add(parent.Number, big1)
 	switch {
-	case config.IsPhoenixFork(next):
-		params.MinimumDifficulty = big.NewInt(1000000)
-		return big.NewInt(1000000)
+	// case config.IsPhoenixFork(next):
+		// params.MinimumDifficulty = big.NewInt(1000000)
+		// return big.NewInt(1000000)
 	case config.IsNewHorizon(next):
 		// Change minimum difficulty
 		params.MinimumDifficulty = big.NewInt(131072)
