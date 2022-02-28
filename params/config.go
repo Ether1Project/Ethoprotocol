@@ -76,7 +76,7 @@ var (
 		IstanbulBlock:       big.NewInt(8_000_000),
 		MuirGlacierBlock:    big.NewInt(8_000_000),
 		NewHorizonBlock:     big.NewInt(8_300_000),
-		PhoenixForkBlock:     big.NewInt(8_725_000),
+		PhoenixForkBlock:     big.NewInt(8_750_000),
 		BerlinBlock:         nil,
 		LondonBlock:         nil,
 		Ethash:              new(EthashConfig),

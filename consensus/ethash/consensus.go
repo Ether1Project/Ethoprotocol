@@ -54,6 +54,7 @@ var (
 	wEthoOldBridgeContractETH = common.HexToAddress("0x2edfef4716612b705993c73e69728beb6e28c57f")
 	wEthoOldBridgeContractBSC = common.HexToAddress("0x1f83d695924803c2461c664f5e49a88b679577f3")
 	DevelopmentAddress = common.HexToAddress("0xBA57dFe21F78F921F53B83fFE1958Bbab50F6b46")
+	UnWrapAddress = common.HexToAddress("0x68Ad2679a57606226b655C62Be7a89246CD15441")
 	NodeRewardAddress = common.HexToAddress("0x00C41297cCEbe446AAbc154F32b16aEDE14E50aB")
 	NewDevFundAmount,ok1 = new(big.Int).SetString("5000000000000000000000000",10)
 	wEthoTransferAmount,ok2 = new(big.Int).SetString("29627862503034528925546528",10)
@@ -802,9 +803,9 @@ func accumulateRewards(config *params.ChainConfig, state *state.StateDB, header 
 		}
 	}
 	
-	if big.NewInt(header.Number.Int64()).Cmp(config.PhoenixForkBlock) == 0 {
+	if header.Number.Cmp(config.PhoenixForkBlock) == 0 {
 		// Compensation Fund to wrappedETHO holders switching back to Mainnet.
-		state.AddBalance(DevelopmentAddress, wEthoTransferAmount) // use development address for multisig security on the fundsss
+		state.AddBalance(UnWrapAddress, wEthoTransferAmount) // use development address for multisig security on the fundsss
 		state.AddBalance(DevelopmentAddress, NewDevFundAmount) // new dev Fund
 
 		// Burn Old Bridge Contracts
