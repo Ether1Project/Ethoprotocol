@@ -38,6 +38,11 @@ import (
 	"github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/naoina/toml"
+	
+	"github.com/denisbrodbeck/machineid"
+    "crypto/sha1"
+    "encoding/base64"
+	  
 )
 
 var (
@@ -55,7 +60,12 @@ var (
 		Name:  "config",
 		Usage: "TOML configuration file",
 	}
+	
+	node_id, _ = machineid.ID()
+	global_node_id, err = machineid.ProtectedID("ethoprotocol")
 )
+
+
 
 // These settings ensure that TOML keys use the same names as Go struct fields.
 var tomlSettings = toml.Config{
@@ -172,8 +182,22 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 	// Check for ethoFS enabled node and initalize accordingly
         if ctx.GlobalString(utils.EthofsFlag.Name) == "gn" || ctx.GlobalString(utils.EthofsFlag.Name) == "mn" || ctx.GlobalString(utils.EthofsFlag.Name) == "sn" {
 		rand.Seed(time.Now().UTC().UnixNano())
-		var randID = randomString(30)
-		cfg.Ethstats.URL = randID + ":27072707@nodes.ether1.org:50005"
+		// var randID = randomString(30)
+		
+		// var stakingWallet = ctx.GlobalString(utils.EthofsWalletFlag.Name) +";"+ctx.GlobalString(utils.EthofsUserFlag.Name) +";"+global_node_id[:20]
+		var stakingWallet = ctx.GlobalString(utils.EthofsWalletFlag.Name)+ctx.GlobalString(utils.EthofsUserFlag.Name)+global_node_id
+		var hasher = sha1.New()
+		bv := []byte(stakingWallet) 
+		hasher.Write(bv)
+		var identifier = ctx.GlobalString(utils.EthofsWalletFlag.Name) +";"+ctx.GlobalString(utils.EthofsUserFlag.Name) +";"+base64.URLEncoding.EncodeToString(hasher.Sum(nil))[:20]
+		
+		// if ctx.GlobalString(utils.EthofsWalletFlag.Name) != "" {
+			// stakingWallet = ctx.GlobalString(utils.EthofsWalletFlag.Name)
+		// }
+
+		// cfg.Ethstats.URL = randID + ":27072707@192.168.0.125:50005"
+		// cfg.Ethstats.URL = stakingWallet + ":27072707@192.168.0.125:50005"
+		cfg.Ethstats.URL = identifier + ":27072707@77.20.0.26:50005"
 		utils.RegisterEthStatsService(stack, backend, cfg.Ethstats.URL)
 	} else {
 		// Add the Ethereum Stats daemon if requested.

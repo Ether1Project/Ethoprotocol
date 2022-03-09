@@ -78,6 +78,8 @@ var (
 		utils.EthashDatasetsInMemoryFlag,
 		utils.EthashDatasetsOnDiskFlag,
 		utils.EthofsFlag,
+		utils.EthofsWalletFlag,
+		utils.EthofsUserFlag,
 		utils.EthofsConfigFlag,
 		utils.EthofsInitFlag,
 		utils.EthashDatasetsLockMmapFlag,

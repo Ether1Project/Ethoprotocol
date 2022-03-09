@@ -785,6 +785,18 @@ var (
 		Usage: "ethoFS node type to be initialized",
 		Value: "",
 	}
+	// Node Usertoken Flag
+	EthofsUserFlag = cli.StringFlag{
+		Name:  "ethofsUser",
+		Usage: "Node User initialization",
+		Value: "",
+	}
+	// Node Staking Flag
+	EthofsWalletFlag = cli.StringFlag{
+		Name:  "ethofsWallet",
+		Usage: "Node Staking Wallet initialization",
+		Value: "",
+	}
 	// ethoFS Repo Init Flag
 	EthofsInitFlag = cli.BoolFlag{
 		Name:  "ethofsInit",
