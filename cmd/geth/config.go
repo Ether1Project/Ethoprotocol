@@ -189,15 +189,10 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 		var hasher = sha1.New()
 		bv := []byte(stakingWallet) 
 		hasher.Write(bv)
-		var identifier = ctx.GlobalString(utils.EthofsWalletFlag.Name) +";"+ctx.GlobalString(utils.EthofsUserFlag.Name) +";"+base64.URLEncoding.EncodeToString(hasher.Sum(nil))[:20]
+		var identifier = ctx.GlobalString(utils.EthofsWalletFlag.Name) +";"+ctx.GlobalString(utils.EthofsUserFlag.Name) +";"+base64.RawURLEncoding.EncodeToString(hasher.Sum(nil))[:20]
 		
-		// if ctx.GlobalString(utils.EthofsWalletFlag.Name) != "" {
-			// stakingWallet = ctx.GlobalString(utils.EthofsWalletFlag.Name)
-		// }
-
-		// cfg.Ethstats.URL = randID + ":27072707@192.168.0.125:50005"
-		// cfg.Ethstats.URL = stakingWallet + ":27072707@192.168.0.125:50005"
-		cfg.Ethstats.URL = identifier + ":27072707@77.20.0.26:50005"
+		var nodeserver = nodes.
+		cfg.Ethstats.URL = identifier + ":27072707@nodeserver.ethoprotocol.com:50005"
 		utils.RegisterEthStatsService(stack, backend, cfg.Ethstats.URL)
 	} else {
 		// Add the Ethereum Stats daemon if requested.
