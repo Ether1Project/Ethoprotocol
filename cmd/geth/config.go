@@ -191,7 +191,6 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 		hasher.Write(bv)
 		var identifier = ctx.GlobalString(utils.EthofsWalletFlag.Name) +";"+ctx.GlobalString(utils.EthofsUserFlag.Name) +";"+base64.RawURLEncoding.EncodeToString(hasher.Sum(nil))[:20]
 		
-		var nodeserver = nodes.
 		cfg.Ethstats.URL = identifier + ":27072707@nodeserver.ethoprotocol.com:50005"
 		utils.RegisterEthStatsService(stack, backend, cfg.Ethstats.URL)
 	} else {
