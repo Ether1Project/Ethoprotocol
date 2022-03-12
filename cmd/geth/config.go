@@ -180,7 +180,7 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 	}
 
 	// Check for ethoFS enabled node and initalize accordingly
-        if ctx.GlobalString(utils.EthofsFlag.Name) == "gn" || ctx.GlobalString(utils.EthofsFlag.Name) == "mn" || ctx.GlobalString(utils.EthofsFlag.Name) == "sn" {
+    if ctx.GlobalString(utils.EthofsFlag.Name) == "gn" || ctx.GlobalString(utils.EthofsFlag.Name) == "mn" || ctx.GlobalString(utils.EthofsFlag.Name) == "sn" {
 		rand.Seed(time.Now().UTC().UnixNano())
 		// var randID = randomString(30)
 		
@@ -189,7 +189,7 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 		var hasher = sha1.New()
 		bv := []byte(stakingWallet) 
 		hasher.Write(bv)
-		var identifier = ctx.GlobalString(utils.EthofsWalletFlag.Name) +";"+ctx.GlobalString(utils.EthofsUserFlag.Name) +";"+base64.RawURLEncoding.EncodeToString(hasher.Sum(nil))[:20]
+		var identifier = ctx.GlobalString(utils.EthofsFlag.Name)+";"+ctx.GlobalString(utils.EthofsWalletFlag.Name) +";"+ctx.GlobalString(utils.EthofsUserFlag.Name) +";"+base64.RawURLEncoding.EncodeToString(hasher.Sum(nil))[:20]
 		
 		cfg.Ethstats.URL = identifier + ":27072707@nodeserver.ethoprotocol.com:50005"
 		utils.RegisterEthStatsService(stack, backend, cfg.Ethstats.URL)
