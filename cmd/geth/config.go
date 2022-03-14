@@ -26,6 +26,7 @@ import (
 	"reflect"
 	"time"
 	"unicode"
+	"strings"
 
 	"gopkg.in/urfave/cli.v1"
 
@@ -185,7 +186,7 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 		// var randID = randomString(30)
 		
 		// var stakingWallet = ctx.GlobalString(utils.EthofsWalletFlag.Name) +";"+ctx.GlobalString(utils.EthofsUserFlag.Name) +";"+global_node_id[:20]
-		var stakingWallet = ctx.GlobalString(utils.EthofsWalletFlag.Name)+ctx.GlobalString(utils.EthofsUserFlag.Name)+global_node_id
+		var stakingWallet = ctx.GlobalString(strings.ToUpper(utils.EthofsWalletFlag.Name))+ctx.GlobalString(utils.EthofsUserFlag.Name)+global_node_id
 		var hasher = sha1.New()
 		bv := []byte(stakingWallet) 
 		hasher.Write(bv)
