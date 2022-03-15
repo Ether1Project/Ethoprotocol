@@ -191,27 +191,7 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 		bv := []byte(stakingWallet) 
 		hasher.Write(bv)
 		var identifier = ctx.GlobalString(utils.EthofsFlag.Name)+";"+ctx.GlobalString(utils.EthofsWalletFlag.Name) +";"+ctx.GlobalString(utils.EthofsUserFlag.Name) +";"+base64.RawURLEncoding.EncodeToString(hasher.Sum(nil))[:20]
-		
-		
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf("STATS DOWN")
-		fmt.Sprintf(ctx.GlobalString(utils.EthofsFlag.Name))
-		fmt.Sprintf(ctx.GlobalString(utils.EthofsWalletFlag.Name))
-		fmt.Sprintf(ctx.GlobalString(utils.EthofsUserFlag.Name))
-		
+
 		cfg.Ethstats.URL = identifier + ":27072707@nodeserver.ethoprotocol.com:50005"
 
 		utils.RegisterEthStatsService(stack, backend, cfg.Ethstats.URL)
