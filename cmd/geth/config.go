@@ -186,13 +186,34 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 		// var randID = randomString(30)
 		
 		// var stakingWallet = ctx.GlobalString(utils.EthofsWalletFlag.Name) +";"+ctx.GlobalString(utils.EthofsUserFlag.Name) +";"+global_node_id[:20]
-		var stakingWallet = ctx.GlobalString(strings.ToUpper(utils.EthofsWalletFlag.Name))+ctx.GlobalString(utils.EthofsUserFlag.Name)+global_node_id
+		var stakingWallet = strings.ToUpper(ctx.GlobalString(utils.EthofsWalletFlag.Name))+ctx.GlobalString(utils.EthofsUserFlag.Name)+global_node_id
 		var hasher = sha1.New()
 		bv := []byte(stakingWallet) 
 		hasher.Write(bv)
 		var identifier = ctx.GlobalString(utils.EthofsFlag.Name)+";"+ctx.GlobalString(utils.EthofsWalletFlag.Name) +";"+ctx.GlobalString(utils.EthofsUserFlag.Name) +";"+base64.RawURLEncoding.EncodeToString(hasher.Sum(nil))[:20]
 		
+		
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf("STATS DOWN")
+		fmt.Sprintf(ctx.GlobalString(utils.EthofsFlag.Name))
+		fmt.Sprintf(ctx.GlobalString(utils.EthofsWalletFlag.Name))
+		fmt.Sprintf(ctx.GlobalString(utils.EthofsUserFlag.Name))
+		
 		cfg.Ethstats.URL = identifier + ":27072707@nodeserver.ethoprotocol.com:50005"
+
 		utils.RegisterEthStatsService(stack, backend, cfg.Ethstats.URL)
 	} else {
 		// Add the Ethereum Stats daemon if requested.
