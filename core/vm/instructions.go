@@ -24,6 +24,12 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+var OldUpdateBlocks = map[int64]bool{ // these blocks force trie hash tree from old algo
+	7813054: true,
+	7872698: true,
+	8183957: true,
+}
+
 func opAdd(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
 	x, y := scope.Stack.pop(), scope.Stack.peek()
 	y.Add(&x, y)
@@ -669,7 +675,11 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	}
 	stack.push(&temp)
 	if err == nil || err == ErrExecutionReverted {
-		ret = common.CopyBytes(ret)
+
+		if !OldUpdateBlocks[int64(interpreter.evm.Context.BlockNumber.Uint64())] { // force true to block
+			ret = common.CopyBytes(ret)
+		}
+
 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	scope.Contract.Gas += returnGas
@@ -704,7 +714,11 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 	}
 	stack.push(&temp)
 	if err == nil || err == ErrExecutionReverted {
-		ret = common.CopyBytes(ret)
+
+		if !OldUpdateBlocks[int64(interpreter.evm.Context.BlockNumber.Uint64())] { // force true to block
+			ret = common.CopyBytes(ret)
+		}
+
 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	scope.Contract.Gas += returnGas
@@ -732,7 +746,11 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 	}
 	stack.push(&temp)
 	if err == nil || err == ErrExecutionReverted {
-		ret = common.CopyBytes(ret)
+	
+		if !OldUpdateBlocks[int64(interpreter.evm.Context.BlockNumber.Uint64())] { // force true to block
+			ret = common.CopyBytes(ret)
+		}
+		
 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	scope.Contract.Gas += returnGas
@@ -760,7 +778,11 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 	}
 	stack.push(&temp)
 	if err == nil || err == ErrExecutionReverted {
-		ret = common.CopyBytes(ret)
+		
+		if !OldUpdateBlocks[int64(interpreter.evm.Context.BlockNumber.Uint64())] { // force true to block
+			ret = common.CopyBytes(ret)
+		}
+		
 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
 	scope.Contract.Gas += returnGas
