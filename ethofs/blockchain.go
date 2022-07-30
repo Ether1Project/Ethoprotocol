@@ -73,14 +73,14 @@ func updatePinContractValues() error {
 			i := new(big.Int).SetUint64(pinNumber)
 			contractPin, err := contract.Pins(nil, i)
 			if err != nil {
-				log.Debug("ethoFS - ether-1 contract connection error (Contract Pin)", "error", err, "number", i)
+				log.Debug("ethoFS - Etho Protocol contract connection error (Contract Pin)", "error", err, "number", i)
 				checkPinResponse(x)
 				return
 			}
 
 			cid, err := cid.Parse(contractPin)
 			if err != nil {
-				log.Debug("ethoFS - ether-1 contract connection error (CID Parse)", "error", err)
+				log.Debug("ethoFS - Etho Protocol contract connection error (CID Parse)", "error", err)
 				checkPinResponse(x)
 				return
 			}
