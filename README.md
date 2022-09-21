@@ -256,7 +256,7 @@ transactions are accepted at (`--miner.gasprice`).
 
 Initializing, configuring and running an Etho node with decentralized storage capabilities (ethoFS) enabled is a three step process.
 
-All three node types are available to initialize, config and run via the CLI utilizing the --ethofs flag to designate node type. Explore the [Etho Protocol Node Dashboard ](https://nodes.ether1.org) for details and requirements for deploying each ethofs enabled node type.
+All three node types are available to initialize, config and run via the CLI utilizing the --ethofs flag to designate node type. Explore the [Etho Protocol Node Dashboard ](https://nodes.ethoprotocol.com) for details and requirements for deploying each ethofs enabled node type. A good place for more information is also our [Etho Protocol documentation ](https://docs.ethoprotocol.com)
 
 #### Node Types:
 
