@@ -118,6 +118,8 @@ var (
 		PetersburgBlock:     big.NewInt(0),
 		IstanbulBlock:       big.NewInt(0),
 		MuirGlacierBlock:    big.NewInt(0),
+		NewHorizonBlock:     big.NewInt(0),
+        PhoenixForkBlock:    big.NewInt(0),
 		BerlinBlock:         nil,
 		LondonBlock:         nil,
 		Ethash:              new(EthashConfig),
