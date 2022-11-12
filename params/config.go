@@ -33,7 +33,7 @@ var (
 	RopstenGenesisHash = common.HexToHash("0x41941023680923e0fe4d74a34bdac8141f2540e3ae90623718e47d66d1ca4a2d")
 	RinkebyGenesisHash = common.HexToHash("0x6341fd3daf94b748c72ced5a5b26028f2474f5f00d824504e4fa37a75767e177")
 	GoerliGenesisHash  = common.HexToHash("0xbf7e331f7f7c1dd2e05159666b3bf8bc7a8a3a9eb1d518969eab529dd9b88c1a")
-    HyperCubeGenesisHash = common.HexToHash("0xbf289100224ae9e27375b93509ff30b7624af5e8ae3eae472e814a2dd6ad1419");
+    HyperCubeGenesisHash = common.HexToHash("0x18f7cc23196150426a604a8dcd5bcc44c76f44f798d493bd26b68662d50719c7");
 )
 
 // TrustedCheckpoints associates each known checkpoint with the genesis hash of
@@ -118,6 +118,8 @@ var (
 		PetersburgBlock:     big.NewInt(0),
 		IstanbulBlock:       big.NewInt(0),
 		MuirGlacierBlock:    big.NewInt(0),
+		NewHorizonBlock:     big.NewInt(0),
+        PhoenixForkBlock:    big.NewInt(0),
 		BerlinBlock:         nil,
 		LondonBlock:         nil,
 		Ethash:              new(EthashConfig),
