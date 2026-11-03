@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/big"
 	"runtime"
 	"sync"
@@ -120,15 +119,15 @@ var encTests = []encTest{
 	{val: big.NewInt(0xFFFFFFFFFFFF), output: "86FFFFFFFFFFFF"},
 	{val: big.NewInt(0xFFFFFFFFFFFFFF), output: "87FFFFFFFFFFFFFF"},
 	{
-		val:    big.NewInt(0).SetBytes(unhex("102030405060708090A0B0C0D0E0F2")),
+		val:    new(big.Int).SetBytes(unhex("102030405060708090A0B0C0D0E0F2")),
 		output: "8F102030405060708090A0B0C0D0E0F2",
 	},
 	{
-		val:    big.NewInt(0).SetBytes(unhex("0100020003000400050006000700080009000A000B000C000D000E01")),
+		val:    new(big.Int).SetBytes(unhex("0100020003000400050006000700080009000A000B000C000D000E01")),
 		output: "9C0100020003000400050006000700080009000A000B000C000D000E01",
 	},
 	{
-		val:    big.NewInt(0).SetBytes(unhex("010000000000000000000000000000000000000000000000000000000000000000")),
+		val:    new(big.Int).SetBytes(unhex("010000000000000000000000000000000000000000000000000000000000000000")),
 		output: "A1010000000000000000000000000000000000000000000000000000000000000000",
 	},
 	{
@@ -145,7 +144,8 @@ var encTests = []encTest{
 	{val: *big.NewInt(0xFFFFFF), output: "83FFFFFF"},
 
 	// negative ints are not supported
-	{val: big.NewInt(-1), error: "rlp: cannot encode negative *big.Int"},
+	{val: big.NewInt(-1), error: "rlp: cannot encode negative big.Int"},
+	{val: *big.NewInt(-1), error: "rlp: cannot encode negative big.Int"},
 
 	// byte arrays
 	{val: [0]byte{}, output: "80"},
@@ -398,13 +398,28 @@ func TestEncodeToBytes(t *testing.T) {
 	runEncTests(t, EncodeToBytes)
 }
 
+func TestEncodeAppendToBytes(t *testing.T) {
+	buffer := make([]byte, 20)
+	runEncTests(t, func(val interface{}) ([]byte, error) {
+		w := NewEncoderBuffer(nil)
+		defer w.Flush()
+
+		err := Encode(w, val)
+		if err != nil {
+			return nil, err
+		}
+		output := w.AppendToBytes(buffer[:0])
+		return output, nil
+	})
+}
+
 func TestEncodeToReader(t *testing.T) {
 	runEncTests(t, func(val interface{}) ([]byte, error) {
 		_, r, err := EncodeToReader(val)
 		if err != nil {
 			return nil, err
 		}
-		return ioutil.ReadAll(r)
+		return io.ReadAll(r)
 	})
 }
 
@@ -445,7 +460,7 @@ func TestEncodeToReaderReturnToPool(t *testing.T) {
 		go func() {
 			for i := 0; i < 1000; i++ {
 				_, r, _ := EncodeToReader("foo")
-				ioutil.ReadAll(r)
+				io.ReadAll(r)
 				r.Read(buf)
 				r.Read(buf)
 				r.Read(buf)
@@ -531,6 +546,34 @@ type byteArrayStruct struct {
 func BenchmarkEncodeByteArrayStruct(b *testing.B) {
 	var out bytes.Buffer
 	var value byteArrayStruct
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		out.Reset()
+		if err := Encode(&out, &value); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+type structSliceElem struct {
+	X uint64
+	Y uint64
+	Z uint64
+}
+
+type structPtrSlice []*structSliceElem
+
+func BenchmarkEncodeStructPtrSlice(b *testing.B) {
+	var out bytes.Buffer
+	var value = structPtrSlice{
+		&structSliceElem{1, 1, 1},
+		&structSliceElem{2, 2, 2},
+		&structSliceElem{3, 3, 3},
+		&structSliceElem{5, 5, 5},
+		&structSliceElem{6, 6, 6},
+		&structSliceElem{7, 7, 7},
+	}
 
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {

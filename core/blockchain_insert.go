@@ -43,7 +43,7 @@ const statsReportLimit = 8 * time.Second
 
 // report prints statistics if some number of blocks have been processed
 // or more than a few seconds have passed since the last message.
-func (st *insertStats) report(chain []*types.Block, index int, dirty common.StorageSize) {
+func (st *insertStats) report(chain []*types.Block, index int, dirty common.StorageSize, setHead bool) {
 	// Fetch the timings for the batch
 	var (
 		now     = mclock.Now()
@@ -75,13 +75,16 @@ func (st *insertStats) report(chain []*types.Block, index int, dirty common.Stor
 		if st.ignored > 0 {
 			context = append(context, []interface{}{"ignored", st.ignored}...)
 		}
-		log.Info("Imported new chain segment", context...)
+		if setHead {
+			log.Info("Imported new chain segment", context...)
+		} else {
+			log.Info("Imported new potential chain segment", context...)
+		}
 
 		if isInitialized && len(chain) == 1 {
 			//ethofs.NewBlock(chain[0]) // ethoFS new block event handler
 			sendNewBlockCommunication(chain[0])
 		}
-
 		// Bump the stats reported to the next section
 		*st = insertStats{startTime: now, lastIndex: index + 1}
 	}
@@ -168,6 +171,14 @@ func (it *insertIterator) previous() *types.Header {
 		return nil
 	}
 	return it.chain[it.index-1].Header()
+}
+
+// current returns the current header that is being processed, or nil.
+func (it *insertIterator) current() *types.Header {
+	if it.index == -1 || it.index >= len(it.chain) {
+		return nil
+	}
+	return it.chain[it.index].Header()
 }
 
 // first returns the first block in the it.

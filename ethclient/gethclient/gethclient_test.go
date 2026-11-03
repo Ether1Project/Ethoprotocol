@@ -31,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/eth"
 	"github.com/ethereum/go-ethereum/eth/ethconfig"
+	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/params"
@@ -40,6 +41,8 @@ import (
 var (
 	testKey, _  = crypto.HexToECDSA("b71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291")
 	testAddr    = crypto.PubkeyToAddress(testKey.PublicKey)
+	testSlot    = common.HexToHash("0xdeadbeef")
+	testValue   = crypto.Keccak256Hash(testSlot[:])
 	testBalance = big.NewInt(2e15)
 )
 
@@ -58,6 +61,12 @@ func newTestBackend(t *testing.T) (*node.Node, []*types.Block) {
 	if err != nil {
 		t.Fatalf("can't create new ethereum service: %v", err)
 	}
+	filterSystem := filters.NewFilterSystem(ethservice.APIBackend, filters.Config{})
+	n.RegisterAPIs([]rpc.API{{
+		Namespace: "eth",
+		Service:   filters.NewFilterAPI(filterSystem, false),
+	}})
+
 	// Import the test chain.
 	if err := n.Start(); err != nil {
 		t.Fatalf("can't start test node: %v", err)
@@ -73,7 +82,7 @@ func generateTestChain() (*core.Genesis, []*types.Block) {
 	config := params.AllEthashProtocolChanges
 	genesis := &core.Genesis{
 		Config:    config,
-		Alloc:     core.GenesisAlloc{testAddr: {Balance: testBalance}},
+		Alloc:     core.GenesisAlloc{testAddr: {Balance: testBalance, Storage: map[common.Hash]common.Hash{testSlot: testValue}}},
 		ExtraData: []byte("test genesis"),
 		Timestamp: 9000,
 	}
@@ -81,7 +90,7 @@ func generateTestChain() (*core.Genesis, []*types.Block) {
 		g.OffsetTime(5)
 		g.SetExtra([]byte("test"))
 	}
-	gblock := genesis.ToBlock(db)
+	gblock := genesis.MustCommit(db)
 	engine := ethash.NewFaker()
 	blocks, _ := core.GenerateChain(config, gblock, engine, db, 1, generate)
 	blocks = append([]*types.Block{gblock}, blocks...)
@@ -97,37 +106,40 @@ func TestGethClient(t *testing.T) {
 	defer backend.Close()
 	defer client.Close()
 
-	tests := map[string]struct {
+	tests := []struct {
+		name string
 		test func(t *testing.T)
 	}{
-		"TestAccessList": {
+		{
+			"TestAccessList",
 			func(t *testing.T) { testAccessList(t, client) },
 		},
-		"TestGetProof": {
+		{
+			"TestGetProof",
 			func(t *testing.T) { testGetProof(t, client) },
-		},
-		"TestGCStats": {
+		}, {
+			"TestGCStats",
 			func(t *testing.T) { testGCStats(t, client) },
-		},
-		"TestMemStats": {
+		}, {
+			"TestMemStats",
 			func(t *testing.T) { testMemStats(t, client) },
-		},
-		"TestGetNodeInfo": {
+		}, {
+			"TestGetNodeInfo",
 			func(t *testing.T) { testGetNodeInfo(t, client) },
-		},
-		"TestSetHead": {
+		}, {
+			"TestSetHead",
 			func(t *testing.T) { testSetHead(t, client) },
-		},
-		"TestSubscribePendingTxs": {
+		}, {
+			"TestSubscribePendingTxs",
 			func(t *testing.T) { testSubscribePendingTransactions(t, client) },
-		},
-		"TestCallContract": {
+		}, {
+			"TestCallContract",
 			func(t *testing.T) { testCallContract(t, client) },
 		},
 	}
 	t.Parallel()
-	for name, tt := range tests {
-		t.Run(name, tt.test)
+	for _, tt := range tests {
+		t.Run(tt.name, tt.test)
 	}
 }
 
@@ -188,7 +200,7 @@ func testAccessList(t *testing.T, client *rpc.Client) {
 func testGetProof(t *testing.T, client *rpc.Client) {
 	ec := New(client)
 	ethcl := ethclient.NewClient(client)
-	result, err := ec.GetProof(context.Background(), testAddr, []string{}, nil)
+	result, err := ec.GetProof(context.Background(), testAddr, []string{testSlot.String()}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -204,6 +216,18 @@ func testGetProof(t *testing.T, client *rpc.Client) {
 	balance, _ := ethcl.BalanceAt(context.Background(), result.Address, nil)
 	if result.Balance.Cmp(balance) != 0 {
 		t.Fatalf("invalid balance, want: %v got: %v", balance, result.Balance)
+	}
+	// test storage
+	if len(result.StorageProof) != 1 {
+		t.Fatalf("invalid storage proof, want 1 proof, got %v proof(s)", len(result.StorageProof))
+	}
+	proof := result.StorageProof[0]
+	slotValue, _ := ethcl.StorageAt(context.Background(), testAddr, testSlot, nil)
+	if !bytes.Equal(slotValue, proof.Value.Bytes()) {
+		t.Fatalf("invalid storage proof value, want: %v, got: %v", slotValue, proof.Value.Bytes())
+	}
+	if proof.Key != testSlot.String() {
+		t.Fatalf("invalid storage proof key, want: %v, got: %v", testSlot.String(), proof.Key)
 	}
 }
 

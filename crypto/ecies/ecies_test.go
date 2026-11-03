@@ -279,7 +279,7 @@ var testCases = []testCase{
 	{
 		Curve:    elliptic.P384(),
 		Name:     "P384",
-		Expected: ECIES_AES256_SHA384,
+		Expected: ECIES_AES192_SHA384,
 	},
 	{
 		Curve:    elliptic.P521(),
@@ -334,7 +334,6 @@ func testParamSelection(t *testing.T, c testCase) {
 	if err == nil {
 		t.Fatalf("ecies: encryption should not have succeeded (%s)\n", c.Name)
 	}
-
 }
 
 // Ensure that the basic public key validation in the decryption operation

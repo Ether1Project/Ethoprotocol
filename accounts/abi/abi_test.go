@@ -295,6 +295,20 @@ func TestOverloadedMethodSignature(t *testing.T) {
 	check("bar0", "bar(uint256,uint256)", false)
 }
 
+func TestCustomErrors(t *testing.T) {
+	json := `[{ "inputs": [	{ "internalType": "uint256", "name": "", "type": "uint256" } ],"name": "MyError", "type": "error"} ]`
+	abi, err := JSON(strings.NewReader(json))
+	if err != nil {
+		t.Fatal(err)
+	}
+	check := func(name string, expect string) {
+		if abi.Errors[name].Sig != expect {
+			t.Fatalf("The signature of overloaded method mismatch, want %s, have %s", expect, abi.Methods[name].Sig)
+		}
+	}
+	check("MyError", "MyError(uint256)")
+}
+
 func TestMultiPack(t *testing.T) {
 	abi, err := JSON(strings.NewReader(jsondata))
 	if err != nil {
@@ -1024,9 +1038,7 @@ func TestABI_EventById(t *testing.T) {
 		}
 		if event == nil {
 			t.Errorf("We should find a event for topic %s, test #%d", topicID.Hex(), testnum)
-		}
-
-		if event.ID != topicID {
+		} else if event.ID != topicID {
 			t.Errorf("Event id %s does not match topic %s, test #%d", event.ID.Hex(), topicID.Hex(), testnum)
 		}
 

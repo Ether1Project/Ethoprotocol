@@ -392,18 +392,16 @@ func testGetTxStatusFromUnindexedPeers(t *testing.T, protocol int) {
 	for _, testspec := range testspecs {
 		// Create a bunch of server peers with different tx history
 		var (
-			serverPeers []*testPeer
-			closeFns    []func()
+			closeFns []func()
 		)
 		for i := 0; i < testspec.peers; i++ {
 			peer, closePeer, _ := client.newRawPeer(t, fmt.Sprintf("server-%d", i), protocol, testspec.txLookups[i])
-			serverPeers = append(serverPeers, peer)
 			closeFns = append(closeFns, closePeer)
 
 			// Create a one-time routine for serving message
-			go func(i int, peer *testPeer) {
-				serveMsg(peer, testspec.txLookups[i])
-			}(i, peer)
+			go func(i int, peer *testPeer, lookup uint64) {
+				serveMsg(peer, lookup)
+			}(i, peer, testspec.txLookups[i])
 		}
 
 		// Send out the GetTxStatus requests, compare the result with

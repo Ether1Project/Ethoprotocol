@@ -11,15 +11,15 @@ import (
 	"strings"
 	"sync"
 
-	config "github.com/ipfs/go-ipfs-config"
 	files "github.com/ipfs/go-ipfs-files"
+	config "github.com/ipfs/go-ipfs/config"
 	libp2p "github.com/ipfs/go-ipfs/core/node/libp2p"
+	path "github.com/ipfs/go-path"
+	unixfs "github.com/ipfs/go-unixfs"
 	icore "github.com/ipfs/interface-go-ipfs-core"
-	peerstore "github.com/libp2p/go-libp2p-peerstore"
 	ma "github.com/multiformats/go-multiaddr"
 
 	assets "github.com/ipfs/go-ipfs/assets"
-	namesys "github.com/ipfs/go-ipfs/namesys"
 
 	"github.com/ethereum/go-ethereum/log"
 
@@ -28,11 +28,12 @@ import (
 	// This package is needed so that all the preloaded plugins are loaded automatically
 	"github.com/ipfs/go-ipfs/plugin/loader"
 	"github.com/ipfs/go-ipfs/repo/fsrepo"
+	"github.com/ipfs/go-ipfs/repo/fsrepo/migrations"
 	"github.com/libp2p/go-libp2p-core/peer"
 
 	corehttp "github.com/ipfs/go-ipfs/core/corehttp"
 	sockets "github.com/libp2p/go-socket-activation"
-	manet "github.com/multiformats/go-multiaddr-net"
+	manet "github.com/multiformats/go-multiaddr/net"
 )
 
 const (
@@ -105,8 +106,20 @@ func swarmPeers(api icore.CoreAPI) {
 
 // Creates an ethoFS/IPFS node and returns its coreAPI
 func createNode(ctx context.Context, repoPath string) (icore.CoreAPI, *core.IpfsNode, error) {
-	// Open the repo
+	// Open the repo, automatically migrating repo version (e.g. v11 -> v12) if needed
 	repo, err := fsrepo.Open(repoPath)
+	if err == fsrepo.ErrNeedMigration {
+		log.Info("ethoFS - migrating IPFS repository to latest version", "targetVersion", fsrepo.RepoVersion)
+		fetchDistPath := migrations.GetDistPathEnv(migrations.CurrentIpfsDist)
+		fetcher, migErr := migrations.GetMigrationFetcher(config.DefaultMigrationDownloadSources, fetchDistPath, nil)
+		if migErr != nil {
+			return nil, nil, fmt.Errorf("ethoFS repo migration fetcher failed: %w", migErr)
+		}
+		if migErr := migrations.RunMigration(ctx, fetcher, fsrepo.RepoVersion, repoPath, false); migErr != nil {
+			return nil, nil, fmt.Errorf("ethoFS repo migration failed: %w", migErr)
+		}
+		repo, err = fsrepo.Open(repoPath)
+	}
 	if err != nil {
 		return nil, nil, err
 	}
@@ -146,19 +159,19 @@ func spawnDefault(ctx context.Context) (icore.CoreAPI, *core.IpfsNode, error) {
 
 func connectToPeers(ctx context.Context, ipfs icore.CoreAPI, peers []string) error {
 	var wg sync.WaitGroup
-	peerInfos := make(map[peer.ID]*peerstore.PeerInfo, len(peers))
+	peerInfos := make(map[peer.ID]*peer.AddrInfo, len(peers))
 	for _, addrStr := range peers {
 		addr, err := ma.NewMultiaddr(addrStr)
 		if err != nil {
 			return err
 		}
-		pii, err := peerstore.InfoFromP2pAddr(addr)
+		pii, err := peer.AddrInfoFromP2pAddr(addr)
 		if err != nil {
 			return err
 		}
 		pi, ok := peerInfos[pii.ID]
 		if !ok {
-			pi = &peerstore.PeerInfo{ID: pii.ID}
+			pi = &peer.AddrInfo{ID: pii.ID}
 			peerInfos[pi.ID] = pi
 		}
 		pi.Addrs = append(pi.Addrs, pii.Addrs...)
@@ -166,7 +179,7 @@ func connectToPeers(ctx context.Context, ipfs icore.CoreAPI, peers []string) err
 
 	wg.Add(len(peerInfos))
 	for _, peerInfo := range peerInfos {
-		go func(peerInfo *peerstore.PeerInfo) {
+		go func(peerInfo *peer.AddrInfo) {
 			defer wg.Done()
 			err := ipfs.Swarm().Connect(ctx, *peerInfo)
 			if err != nil {
@@ -342,7 +355,14 @@ func initializeIpnsKeyspace(repoRoot string) error {
 	}
 	defer nd.Close()
 
-	return namesys.InitializeKeyspace(ctx, nd.Namesys, nd.Pinning, nd.PrivateKey)
+	emptyDir := unixfs.EmptyDirNode()
+	if err := nd.Pinning.Pin(ctx, emptyDir, false); err != nil {
+		return err
+	}
+	if err := nd.Pinning.Flush(ctx); err != nil {
+		return err
+	}
+	return nd.Namesys.Publish(ctx, nd.PrivateKey, path.FromCid(emptyDir.Cid()))
 }
 
 func initializeEthofsRepo() error {
