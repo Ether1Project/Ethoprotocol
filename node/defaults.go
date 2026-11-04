@@ -74,23 +74,43 @@ func DefaultDataDir() string {
 	if home != "" {
 		switch runtime.GOOS {
 		case "darwin":
-			return filepath.Join(home, "Library", "Ether1")
+			return migrateDataDir(
+				filepath.Join(home, "Library", "Ether1"),
+				filepath.Join(home, "Library", "Etho"),
+			)
 		case "windows":
 			// We used to put everything in %HOME%\AppData\Roaming, but this caused
 			// problems with non-typical setups. If this fallback location exists and
 			// is non-empty, use it, otherwise DTRT and check %LOCALAPPDATA%.
-			fallback := filepath.Join(home, "AppData", "Roaming", "Ether1")
+			oldFallback := filepath.Join(home, "AppData", "Roaming", "Ether1")
+			fallback := migrateDataDir(oldFallback, filepath.Join(home, "AppData", "Roaming", "Etho"))
 			appdata := windowsAppData()
 			if appdata == "" || isNonEmptyDir(fallback) {
 				return fallback
 			}
-			return filepath.Join(appdata, "Ether1")
+			return migrateDataDir(
+				filepath.Join(appdata, "Ether1"),
+				filepath.Join(appdata, "Etho"),
+			)
 		default:
-			return filepath.Join(home, ".ether1")
+			return migrateDataDir(
+				filepath.Join(home, ".ether1"),
+				filepath.Join(home, ".etho"),
+			)
 		}
 	}
 	// As we cannot guess a stable location, return empty and handle later
 	return ""
+}
+
+func migrateDataDir(oldDir, newDir string) string {
+	if !isNonEmptyDir(newDir) && isNonEmptyDir(oldDir) {
+		_ = os.Remove(newDir)
+		if err := os.Rename(oldDir, newDir); err != nil {
+			return oldDir
+		}
+	}
+	return newDir
 }
 
 func windowsAppData() string {
