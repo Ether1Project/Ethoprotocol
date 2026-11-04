@@ -37,6 +37,7 @@ import (
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/metrics"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/hashicorp/golang-lru/simplelru"
 )
@@ -219,7 +220,8 @@ func (lru *lru) get(epoch uint64) (item, future interface{}) {
 
 // cache wraps an ethash cache with some metadata to allow easier concurrent use.
 type cache struct {
-	epoch uint64    // Epoch for which this cache is relevant
+	epoch       uint64    // Epoch for which this cache is relevant
+	epochLength uint64    // Epoch length (30000 or 60000 after ECIP-1099)
 	dump  *os.File  // File descriptor of the memory mapped cache
 	mmap  mmap.MMap // Memory map itself to unmap before releasing
 	cache []uint32  // The actual cache data content (may be memory mapped)
@@ -235,8 +237,12 @@ func newCache(epoch uint64) interface{} {
 // generate ensures that the cache content is generated before use.
 func (c *cache) generate(dir string, limit int, lock bool, test bool) {
 	c.once.Do(func() {
-		size := cacheSize(c.epoch*epochLength + 1)
-		seed := seedHash(c.epoch*epochLength + 1)
+		epochLen := c.epochLength
+		if epochLen == 0 {
+			epochLen = epochLength
+		}
+		size := cacheSizeForEpoch(c.epoch)
+		seed := seedHash(calcEpochBlock(c.epoch, epochLen))
 		if test {
 			size = 1024
 		}
@@ -277,7 +283,7 @@ func (c *cache) generate(dir string, limit int, lock bool, test bool) {
 		}
 		// Iterate over all previous instances and delete old ones
 		for ep := int(c.epoch) - limit; ep >= 0; ep-- {
-			seed := seedHash(uint64(ep)*epochLength + 1)
+			seed := seedHash(calcEpochBlock(uint64(ep), epochLen))
 			path := filepath.Join(dir, fmt.Sprintf("cache-R%d-%x%s*", algorithmRevision, seed[:8], endian))
 			files, _ := filepath.Glob(path) // find also the temp files that are generated.
 			for _, file := range files {
@@ -298,7 +304,8 @@ func (c *cache) finalizer() {
 
 // dataset wraps an ethash dataset with some metadata to allow easier concurrent use.
 type dataset struct {
-	epoch   uint64    // Epoch for which this cache is relevant
+	epoch       uint64    // Epoch for which this cache is relevant
+	epochLength uint64    // Epoch length (30000 or 60000 after ECIP-1099)
 	dump    *os.File  // File descriptor of the memory mapped cache
 	mmap    mmap.MMap // Memory map itself to unmap before releasing
 	dataset []uint32  // The actual cache data content
@@ -318,9 +325,13 @@ func (d *dataset) generate(dir string, limit int, lock bool, test bool) {
 		// Mark the dataset generated after we're done. This is needed for remote
 		defer atomic.StoreUint32(&d.done, 1)
 
-		csize := cacheSize(d.epoch*epochLength + 1)
-		dsize := datasetSize(d.epoch*epochLength + 1)
-		seed := seedHash(d.epoch*epochLength + 1)
+		epochLen := d.epochLength
+		if epochLen == 0 {
+			epochLen = epochLength
+		}
+		csize := cacheSizeForEpoch(d.epoch)
+		dsize := datasetSizeForEpoch(d.epoch)
+		seed := seedHash(calcEpochBlock(d.epoch, epochLen))
 		if test {
 			csize = 1024
 			dsize = 32 * 1024
@@ -369,7 +380,7 @@ func (d *dataset) generate(dir string, limit int, lock bool, test bool) {
 		}
 		// Iterate over all previous instances and delete old ones
 		for ep := int(d.epoch) - limit; ep >= 0; ep-- {
-			seed := seedHash(uint64(ep)*epochLength + 1)
+			seed := seedHash(calcEpochBlock(uint64(ep), epochLen))
 			path := filepath.Join(dir, fmt.Sprintf("full-R%d-%x%s", algorithmRevision, seed[:8], endian))
 			os.Remove(path)
 		}
@@ -394,13 +405,25 @@ func (d *dataset) finalizer() {
 
 // MakeCache generates a new ethash cache and optionally stores it to disk.
 func MakeCache(block uint64, dir string) {
-	c := cache{epoch: block / epochLength}
+	var ecip1099 *uint64
+	if params.MainnetChainConfig.ECIP1099Block != nil {
+		b := params.MainnetChainConfig.ECIP1099Block.Uint64()
+		ecip1099 = &b
+	}
+	epochLen := calcEpochLength(block, ecip1099)
+	c := cache{epoch: calcEpoch(block, epochLen), epochLength: epochLen}
 	c.generate(dir, math.MaxInt32, false, false)
 }
 
 // MakeDataset generates a new ethash dataset and optionally stores it to disk.
 func MakeDataset(block uint64, dir string) {
-	d := dataset{epoch: block / epochLength}
+	var ecip1099 *uint64
+	if params.MainnetChainConfig.ECIP1099Block != nil {
+		b := params.MainnetChainConfig.ECIP1099Block.Uint64()
+		ecip1099 = &b
+	}
+	epochLen := calcEpochLength(block, ecip1099)
+	d := dataset{epoch: calcEpoch(block, epochLen), epochLength: epochLen}
 	d.generate(dir, math.MaxInt32, false, false)
 }
 
@@ -426,6 +449,7 @@ type Config struct {
 	DatasetsOnDisk   int
 	DatasetsLockMmap bool
 	PowMode          Mode
+	ECIP1099Block    *uint64 `toml:",omitempty"`
 
 	// When set, notifications sent by the remote sealer will
 	// be block header JSON objects instead of work package arrays.
@@ -572,9 +596,11 @@ func (ethash *Ethash) StopRemoteSealer() error {
 // by first checking against a list of in-memory caches, then against caches
 // stored on disk, and finally generating one if none can be found.
 func (ethash *Ethash) cache(block uint64) *cache {
-	epoch := block / epochLength
+	epochLen := ethash.epochLength(block)
+	epoch := calcEpoch(block, epochLen)
 	currentI, futureI := ethash.caches.get(epoch)
 	current := currentI.(*cache)
+	current.epochLength = epochLen
 
 	// Wait for generation finish.
 	current.generate(ethash.config.CacheDir, ethash.config.CachesOnDisk, ethash.config.CachesLockMmap, ethash.config.PowMode == ModeTest)
@@ -582,6 +608,7 @@ func (ethash *Ethash) cache(block uint64) *cache {
 	// If we need a new future cache, now's a good time to regenerate it.
 	if futureI != nil {
 		future := futureI.(*cache)
+		future.epochLength = ethash.epochLength((epoch + 1) * epochLen)
 		go future.generate(ethash.config.CacheDir, ethash.config.CachesOnDisk, ethash.config.CachesLockMmap, ethash.config.PowMode == ModeTest)
 	}
 	return current
@@ -595,9 +622,11 @@ func (ethash *Ethash) cache(block uint64) *cache {
 // generates on a background thread.
 func (ethash *Ethash) dataset(block uint64, async bool) *dataset {
 	// Retrieve the requested ethash dataset
-	epoch := block / epochLength
+	epochLen := ethash.epochLength(block)
+	epoch := calcEpoch(block, epochLen)
 	currentI, futureI := ethash.datasets.get(epoch)
 	current := currentI.(*dataset)
+	current.epochLength = epochLen
 
 	// If async is specified, generate everything in a background thread
 	if async && !current.generated() {
@@ -606,6 +635,7 @@ func (ethash *Ethash) dataset(block uint64, async bool) *dataset {
 
 			if futureI != nil {
 				future := futureI.(*dataset)
+				future.epochLength = ethash.epochLength((epoch + 1) * epochLen)
 				future.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.DatasetsLockMmap, ethash.config.PowMode == ModeTest)
 			}
 		}()
@@ -615,6 +645,7 @@ func (ethash *Ethash) dataset(block uint64, async bool) *dataset {
 
 		if futureI != nil {
 			future := futureI.(*dataset)
+			future.epochLength = ethash.epochLength((epoch + 1) * epochLen)
 			go future.generate(ethash.config.DatasetDir, ethash.config.DatasetsOnDisk, ethash.config.DatasetsLockMmap, ethash.config.PowMode == ModeTest)
 		}
 	}
@@ -692,6 +723,19 @@ func (ethash *Ethash) APIs(chain consensus.ChainHeaderReader) []rpc.API {
 
 // SeedHash is the seed to use for generating a verification cache and the mining
 // dataset.
+// epochLength returns the epoch length for a given block number, accounting for ECIP-1099.
+func (ethash *Ethash) epochLength(block uint64) uint64 {
+	return calcEpochLength(block, ethash.config.ECIP1099Block)
+}
+
+// SeedHash returns the seed hash to use for generating a verification cache and the mining
+// dataset for the given block number, accounting for ECIP-1099 epoch calibration.
+func (ethash *Ethash) SeedHash(block uint64) []byte {
+	epochLen := ethash.epochLength(block)
+	epoch := calcEpoch(block, epochLen)
+	return seedHash(calcEpochBlock(epoch, epochLen))
+}
+
 func SeedHash(block uint64) []byte {
 	return seedHash(block)
 }

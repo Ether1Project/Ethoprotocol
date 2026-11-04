@@ -231,7 +231,13 @@ func CreateConsensusEngine(stack *node.Node, chainConfig *params.ChainConfig, co
 		case ethash.ModeShared:
 			log.Warn("Ethash used in shared mode")
 		}
+		ecip1099Block := config.ECIP1099Block
+		if chainConfig != nil && chainConfig.ECIP1099Block != nil {
+			b := chainConfig.ECIP1099Block.Uint64()
+			ecip1099Block = &b
+		}
 		engine = ethash.New(ethash.Config{
+			ECIP1099Block:    ecip1099Block,
 			PowMode:          config.PowMode,
 			CacheDir:         stack.ResolvePath(config.CacheDir),
 			CachesInMem:      config.CachesInMem,

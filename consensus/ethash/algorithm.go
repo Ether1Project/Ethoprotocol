@@ -39,7 +39,8 @@ const (
 	datasetGrowthBytes = 1 << 23 // Dataset growth per epoch
 	cacheInitBytes     = 1 << 24 // Bytes in cache at genesis
 	cacheGrowthBytes   = 1 << 17 // Cache growth per epoch
-	epochLength        = 30000   // Blocks per epoch
+	epochLength         = 30000   // Blocks per epoch
+	ecip1099EpochLength = 60000   // Blocks per epoch after ECIP-1099 (Etchash)
 	mixBytes           = 128     // Width of mix
 	hashBytes          = 64      // Hash length in bytes
 	hashWords          = 16      // Number of 32 bit ints in a hash
@@ -50,6 +51,34 @@ const (
 
 // cacheSize returns the size of the ethash verification cache that belongs to a certain
 // block number.
+// calcEpochLength returns the epoch length for a given block number, accounting for ECIP-1099.
+func calcEpochLength(block uint64, ecip1099Block *uint64) uint64 {
+	if ecip1099Block != nil && block >= *ecip1099Block {
+		return ecip1099EpochLength
+	}
+	return epochLength
+}
+
+// calcEpoch returns the epoch for a given block number and epoch length.
+func calcEpoch(block uint64, epochLen uint64) uint64 {
+	return block / epochLen
+}
+
+// calcEpochBlock returns the canonical block number used for seedHash calculation
+// of a given epoch and epoch length.
+func calcEpochBlock(epoch uint64, epochLen uint64) uint64 {
+	return epoch*epochLen + 1
+}
+
+// cacheSizeForEpoch returns the size of the ethash verification cache that belongs to a certain
+// epoch number.
+func cacheSizeForEpoch(epoch uint64) uint64 {
+	if int(epoch) < maxEpoch {
+		return cacheSizes[int(epoch)]
+	}
+	return calcCacheSize(int(epoch))
+}
+
 func cacheSize(block uint64) uint64 {
 	epoch := int(block / epochLength)
 	if epoch < maxEpoch {
@@ -71,6 +100,15 @@ func calcCacheSize(epoch int) uint64 {
 
 // datasetSize returns the size of the ethash mining dataset that belongs to a certain
 // block number.
+// datasetSizeForEpoch returns the size of the ethash mining dataset that belongs to a certain
+// epoch number.
+func datasetSizeForEpoch(epoch uint64) uint64 {
+	if int(epoch) < maxEpoch {
+		return datasetSizes[int(epoch)]
+	}
+	return calcDatasetSize(int(epoch))
+}
+
 func datasetSize(block uint64) uint64 {
 	epoch := int(block / epochLength)
 	if epoch < maxEpoch {

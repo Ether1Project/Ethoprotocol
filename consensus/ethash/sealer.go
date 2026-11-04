@@ -64,6 +64,10 @@ func (ethash *Ethash) Seal(chain consensus.ChainHeaderReader, block *types.Block
 	if ethash.shared != nil {
 		return ethash.shared.Seal(chain, block, results, stop)
 	}
+	if chain != nil && chain.Config() != nil && chain.Config().ECIP1099Block != nil && ethash.config.ECIP1099Block == nil {
+		ecip := chain.Config().ECIP1099Block.Uint64()
+		ethash.config.ECIP1099Block = &ecip
+	}
 	// Create a runner and the multiple search threads it directs
 	abort := make(chan struct{})
 
@@ -346,7 +350,7 @@ func (s *remoteSealer) loop() {
 func (s *remoteSealer) makeWork(block *types.Block) {
 	hash := s.ethash.SealHash(block.Header())
 	s.currentWork[0] = hash.Hex()
-	s.currentWork[1] = common.BytesToHash(SeedHash(block.NumberU64())).Hex()
+	s.currentWork[1] = common.BytesToHash(s.ethash.SeedHash(block.NumberU64())).Hex()
 	s.currentWork[2] = common.BytesToHash(new(big.Int).Div(two256, block.Difficulty()).Bytes()).Hex()
 	s.currentWork[3] = hexutil.EncodeBig(block.Number())
 

@@ -17,6 +17,7 @@
 package ethash
 
 import (
+	"bytes"
 	"math/big"
 	"math/rand"
 	"os"
@@ -173,5 +174,61 @@ func TestClosedRemoteSealer(t *testing.T) {
 
 	if res := api.SubmitHashrate(hexutil.Uint64(100), common.HexToHash("a")); res {
 		t.Error("expect to return false when submit hashrate to a stopped ethash")
+	}
+}
+
+func TestECIP1099(t *testing.T) {
+	ecipBlock := uint64(20_000_000)
+	ethash := New(Config{PowMode: ModeTest, ECIP1099Block: &ecipBlock}, nil, false)
+	defer ethash.Close()
+
+	// Pre-fork block 19,999,999: epochLength = 30,000 -> epoch 666
+	preBlock := uint64(19_999_999)
+	if got := ethash.epochLength(preBlock); got != 30000 {
+		t.Fatalf("expected pre-ECIP1099 epochLength 30000, got %d", got)
+	}
+	if got := calcEpoch(preBlock, ethash.epochLength(preBlock)); got != 666 {
+		t.Fatalf("expected pre-ECIP1099 epoch 666, got %d", got)
+	}
+
+	// Post-fork blocks 20,000,000 and 20,045,000: epochLength = 60,000 -> epoch 333
+	postBlock1 := uint64(20_000_000)
+	postBlock2 := uint64(20_045_000)
+	if got := ethash.epochLength(postBlock1); got != 60000 {
+		t.Fatalf("expected post-ECIP1099 epochLength 60000, got %d", got)
+	}
+	if got := calcEpoch(postBlock1, ethash.epochLength(postBlock1)); got != 333 {
+		t.Fatalf("expected post-ECIP1099 epoch 333, got %d", got)
+	}
+	if got := calcEpoch(postBlock2, ethash.epochLength(postBlock2)); got != 333 {
+		t.Fatalf("expected post-ECIP1099 epoch 333 at block %d, got %d", postBlock2, got)
+	}
+
+	// Verify SeedHash remains identical across both halves of the 60,000-block epoch
+	seed1 := ethash.SeedHash(postBlock1)
+	seed2 := ethash.SeedHash(postBlock2)
+	expectedSeed := SeedHash(333*60000 + 1)
+	if !bytes.Equal(seed1, seed2) {
+		t.Fatalf("seedHash changed mid-epoch under ECIP-1099: %x vs %x", seed1, seed2)
+	}
+	if !bytes.Equal(seed1, expectedSeed) {
+		t.Fatalf("unexpected ECIP-1099 seedHash: got %x, want %x", seed1, expectedSeed)
+	}
+
+	// Verify sealing and verification work at a post-ECIP1099 block
+	header := &types.Header{Number: new(big.Int).SetUint64(postBlock2), Difficulty: big.NewInt(100)}
+	results := make(chan *types.Block)
+	if err := ethash.Seal(nil, types.NewBlockWithHeader(header), results, nil); err != nil {
+		t.Fatalf("failed to seal post-ECIP1099 block: %v", err)
+	}
+	select {
+	case block := <-results:
+		header.Nonce = types.EncodeNonce(block.Nonce())
+		header.MixDigest = block.MixDigest()
+		if err := ethash.verifySeal(nil, header, false); err != nil {
+			t.Fatalf("unexpected verification error on post-ECIP1099 block: %v", err)
+		}
+	case <-time.NewTimer(4 * time.Second).C:
+		t.Fatal("sealing result timeout")
 	}
 }

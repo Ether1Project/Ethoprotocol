@@ -129,6 +129,10 @@ func (ethash *Ethash) VerifyHeader(chain consensus.ChainHeaderReader, header *ty
 		return nil
 	}
 	// Short circuit if the header is known, or its parent not
+	if chain != nil && chain.Config() != nil && chain.Config().ECIP1099Block != nil && ethash.config.ECIP1099Block == nil {
+		ecip := chain.Config().ECIP1099Block.Uint64()
+		ethash.config.ECIP1099Block = &ecip
+	}
 	number := header.Number.Uint64()
 	if chain.GetHeader(header.Hash(), number) != nil {
 		return nil
@@ -619,6 +623,10 @@ func (ethash *Ethash) verifySeal(chain consensus.ChainHeaderReader, header *type
 		return errInvalidDifficulty
 	}
 	// Recompute the digest and PoW values
+	if chain != nil && chain.Config() != nil && chain.Config().ECIP1099Block != nil && ethash.config.ECIP1099Block == nil {
+		ecip := chain.Config().ECIP1099Block.Uint64()
+		ethash.config.ECIP1099Block = &ecip
+	}
 	number := header.Number.Uint64()
 
 	var (
@@ -643,7 +651,7 @@ func (ethash *Ethash) verifySeal(chain consensus.ChainHeaderReader, header *type
 	if !fulldag {
 		cache := ethash.cache(number)
 
-		size := datasetSize(number)
+		size := datasetSizeForEpoch(cache.epoch)
 		if ethash.config.PowMode == ModeTest {
 			size = 32 * 1024
 		}

@@ -82,6 +82,7 @@ var (
 		MuirGlacierBlock:    big.NewInt(8_000_000),
 		NewHorizonBlock:     big.NewInt(8_300_000),
 		PhoenixForkBlock:    big.NewInt(8_750_000),
+		ECIP1099Block:       nil, // Etchash DAG epoch calibration (e.g. big.NewInt(20_000_000))
 		BerlinBlock:         nil,
 		LondonBlock:         nil,
 		Ethash:              new(EthashConfig),
@@ -125,6 +126,7 @@ var (
 		MuirGlacierBlock:    big.NewInt(0),
 		NewHorizonBlock:     big.NewInt(0),
         PhoenixForkBlock:    big.NewInt(0),
+		ECIP1099Block:       nil,
 		BerlinBlock:         nil,
 		LondonBlock:         nil,
 		Ethash:              new(EthashConfig),
@@ -314,16 +316,16 @@ var (
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, false, new(EthashConfig), nil}
+	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, false, new(EthashConfig), nil}
 
 	// AllCliqueProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the Clique consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, false, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
+	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, big.NewInt(0), big.NewInt(0), nil, big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, false, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
 
-	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, false, new(EthashConfig), nil}
+	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, false, new(EthashConfig), nil}
 	TestRules       = TestChainConfig.Rules(new(big.Int), false)
 )
 
@@ -412,7 +414,8 @@ type ChainConfig struct {
 	IstanbulBlock       *big.Int `json:"istanbulBlock,omitempty"`       // Istanbul switch block (nil = no fork, 0 = already on istanbul)
 	MuirGlacierBlock    *big.Int `json:"muirGlacierBlock,omitempty"`    // Eip-2384 (bomb delay) switch block (nil = no fork, 0 = already activated)
 	NewHorizonBlock     *big.Int `json:"newHorizonBlock,omitempty"`     // NewHorizon switch block (nil = no fork, 0 = already activated)
-	PhoenixForkBlock     *big.Int `json:"phoenixForkBlock,omitempty"`     // NewHorizon switch block (nil = no fork, 0 = already activated)
+	PhoenixForkBlock    *big.Int `json:"phoenixForkBlock,omitempty"`    // Phoenix switch block (nil = no fork, 0 = already activated)
+	ECIP1099Block       *big.Int `json:"ecip1099Block,omitempty"`       // ECIP-1099 (Etchash) DAG epoch calibration switch block (nil = no fork)
 	BerlinBlock         *big.Int `json:"berlinBlock,omitempty"`         // Berlin switch block (nil = no fork, 0 = already on berlin)
 	LondonBlock         *big.Int `json:"londonBlock,omitempty"`         // London switch block (nil = no fork, 0 = already on london)
 	ArrowGlacierBlock   *big.Int `json:"arrowGlacierBlock,omitempty"`   // Eip-4345 (bomb delay) switch block (nil = no fork, 0 = already activated)
@@ -513,6 +516,9 @@ func (c *ChainConfig) String() string {
 	if c.PhoenixForkBlock != nil {
 		banner += fmt.Sprintf(" - Phoenix:                     %-8v\n", c.PhoenixForkBlock)
 	}
+	if c.ECIP1099Block != nil {
+		banner += fmt.Sprintf(" - ECIP-1099 (Etchash):         %-8v\n", c.ECIP1099Block)
+	}
 	banner += fmt.Sprintf(" - Berlin:                      %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/berlin.md)\n", c.BerlinBlock)
 	banner += fmt.Sprintf(" - London:                      %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/london.md)\n", c.LondonBlock)
 	if c.ArrowGlacierBlock != nil {
@@ -596,6 +602,11 @@ func (c *ChainConfig) IsNewHorizon(num *big.Int) bool {
 // IsPhoenixForkreturns whether num is either equal to the PhoenixFork fork block or greater.
 func (c *ChainConfig) IsPhoenixFork(num *big.Int) bool {
 	return isForked(c.PhoenixForkBlock, num)
+}
+
+// IsECIP1099 returns whether num is either equal to the ECIP-1099 (Etchash) fork block or greater.
+func (c *ChainConfig) IsECIP1099(num *big.Int) bool {
+	return isForked(c.ECIP1099Block, num)
 }
 
 // IsPetersburg returns whether num is either
@@ -689,6 +700,7 @@ func (c *ChainConfig) CheckConfigForkOrder() error {
 		{name: "muirGlacierBlock", block: c.MuirGlacierBlock, optional: true},
 		{name: "newHorizonBlock", block: c.NewHorizonBlock, optional: true},
 		{name: "phoenixForkBlock", block: c.PhoenixForkBlock, optional: true},
+		{name: "ecip1099Block", block: c.ECIP1099Block, optional: true},
 		{name: "berlinBlock", block: c.BerlinBlock},
 		{name: "londonBlock", block: c.LondonBlock},
 		{name: "arrowGlacierBlock", block: c.ArrowGlacierBlock, optional: true},
@@ -751,6 +763,9 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 	}
 	if isForkIncompatible(c.PhoenixForkBlock, newcfg.PhoenixForkBlock, head) {
 		return newCompatError("PhoenixFork fork block", c.PhoenixForkBlock, newcfg.PhoenixForkBlock)
+	}
+	if isForkIncompatible(c.ECIP1099Block, newcfg.ECIP1099Block, head) {
+		return newCompatError("ECIP-1099 fork block", c.ECIP1099Block, newcfg.ECIP1099Block)
 	}
 	if isForkIncompatible(c.ConstantinopleBlock, newcfg.ConstantinopleBlock, head) {
 		return newCompatError("Constantinople fork block", c.ConstantinopleBlock, newcfg.ConstantinopleBlock)
