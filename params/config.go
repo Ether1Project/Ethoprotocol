@@ -492,23 +492,23 @@ func (c *ChainConfig) String() string {
 	// Create a list of forks with a short description of them. Forks that only
 	// makes sense for mainnet should be optional at printing to avoid bloating
 	// the output for testnets and private networks.
-	banner += "Pre-Merge hard forks:\n"
-	banner += fmt.Sprintf(" - Homestead:                   %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/homestead.md)\n", c.HomesteadBlock)
+	banner += "Hard forks:\n"
+	banner += fmt.Sprintf(" - Homestead:                   %-8v\n", c.HomesteadBlock)
 	if c.DAOForkBlock != nil {
-		banner += fmt.Sprintf(" - DAO Fork:                    %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/dao-fork.md)\n", c.DAOForkBlock)
+		banner += fmt.Sprintf(" - DAO Fork:                    %-8v\n", c.DAOForkBlock)
 	}
-	banner += fmt.Sprintf(" - Tangerine Whistle (EIP 150): %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/tangerine-whistle.md)\n", c.EIP150Block)
-	banner += fmt.Sprintf(" - Spurious Dragon/1 (EIP 155): %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/spurious-dragon.md)\n", c.EIP155Block)
-	banner += fmt.Sprintf(" - Spurious Dragon/2 (EIP 158): %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/spurious-dragon.md)\n", c.EIP155Block)
-	banner += fmt.Sprintf(" - Byzantium:                   %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/byzantium.md)\n", c.ByzantiumBlock)
+	banner += fmt.Sprintf(" - Tangerine Whistle (EIP 150): %-8v\n", c.EIP150Block)
+	banner += fmt.Sprintf(" - Spurious Dragon/1 (EIP 155): %-8v\n", c.EIP155Block)
+	banner += fmt.Sprintf(" - Spurious Dragon/2 (EIP 158): %-8v\n", c.EIP155Block)
+	banner += fmt.Sprintf(" - Byzantium:                   %-8v\n", c.ByzantiumBlock)
 	if c.RobinHoodBlock != nil {
 		banner += fmt.Sprintf(" - RobinHood:                   %-8v\n", c.RobinHoodBlock)
 	}
-	banner += fmt.Sprintf(" - Constantinople:              %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/constantinople.md)\n", c.ConstantinopleBlock)
-	banner += fmt.Sprintf(" - Petersburg:                  %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/petersburg.md)\n", c.PetersburgBlock)
-	banner += fmt.Sprintf(" - Istanbul:                    %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/istanbul.md)\n", c.IstanbulBlock)
+	banner += fmt.Sprintf(" - Constantinople:              %-8v\n", c.ConstantinopleBlock)
+	banner += fmt.Sprintf(" - Petersburg:                  %-8v\n", c.PetersburgBlock)
+	banner += fmt.Sprintf(" - Istanbul:                    %-8v\n", c.IstanbulBlock)
 	if c.MuirGlacierBlock != nil {
-		banner += fmt.Sprintf(" - Muir Glacier:                %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/muir-glacier.md)\n", c.MuirGlacierBlock)
+		banner += fmt.Sprintf(" - Muir Glacier:                %-8v\n", c.MuirGlacierBlock)
 	}
 	if c.NewHorizonBlock != nil {
 		banner += fmt.Sprintf(" - NewHorizon:                  %-8v\n", c.NewHorizonBlock)
@@ -519,32 +519,31 @@ func (c *ChainConfig) String() string {
 	if c.ECIP1099Block != nil {
 		banner += fmt.Sprintf(" - ECIP-1099 (Etchash):         %-8v\n", c.ECIP1099Block)
 	}
-	banner += fmt.Sprintf(" - Berlin:                      %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/berlin.md)\n", c.BerlinBlock)
-	banner += fmt.Sprintf(" - London:                      %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/london.md)\n", c.LondonBlock)
+	if c.BerlinBlock != nil {
+		banner += fmt.Sprintf(" - Berlin:                      %-8v\n", c.BerlinBlock)
+	}
+	if c.LondonBlock != nil {
+		banner += fmt.Sprintf(" - London:                      %-8v\n", c.LondonBlock)
+	}
 	if c.ArrowGlacierBlock != nil {
-		banner += fmt.Sprintf(" - Arrow Glacier:               %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/arrow-glacier.md)\n", c.ArrowGlacierBlock)
+		banner += fmt.Sprintf(" - Arrow Glacier:               %-8v\n", c.ArrowGlacierBlock)
 	}
 	if c.GrayGlacierBlock != nil {
-		banner += fmt.Sprintf(" - Gray Glacier:                %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/gray-glacier.md)\n", c.GrayGlacierBlock)
+		banner += fmt.Sprintf(" - Gray Glacier:                %-8v\n", c.GrayGlacierBlock)
 	}
 	if c.ShanghaiBlock != nil {
-		banner += fmt.Sprintf(" - Shanghai:                     %-8v (https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/shanghai.md)\n", c.ShanghaiBlock)
+		banner += fmt.Sprintf(" - Shanghai:                    %-8v\n", c.ShanghaiBlock)
 	}
 	if c.CancunBlock != nil {
 		banner += fmt.Sprintf(" - Cancun:                      %-8v\n", c.CancunBlock)
 	}
-	banner += "\n"
-
-	// Add a special section for the merge as it's non-obvious
-	if c.TerminalTotalDifficulty == nil {
-		banner += "The Merge is not yet available for this network!\n"
-		banner += " - Hard-fork specification: https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/paris.md"
-	} else {
-		banner += "Merge configured:\n"
-		banner += " - Hard-fork specification:    https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/paris.md\n"
+	if c.TerminalTotalDifficulty != nil {
+		banner += "\nMerge configured:\n"
 		banner += fmt.Sprintf(" - Network known to be merged: %v\n", c.TerminalTotalDifficultyPassed)
 		banner += fmt.Sprintf(" - Total terminal difficulty:  %v\n", c.TerminalTotalDifficulty)
 		banner += fmt.Sprintf(" - Merge netsplit block:       %-8v", c.MergeNetsplitBlock)
+	} else {
+		banner = banner[:len(banner)-1]
 	}
 	return banner
 }
