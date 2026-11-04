@@ -299,7 +299,7 @@ func prepare(ctx *cli.Context) {
 		log.Info("Starting Geth on Kiln testnet...")
 
 	case ctx.IsSet(utils.HyperCubeFlag.Name):
-		log.Info("Startin geth on Ether-1 HyperCube testnet...")
+		log.Info("Starting Geth on Etho Protocol HyperCube testnet...")
 
 	case ctx.IsSet(utils.DeveloperFlag.Name):
 		log.Info("Starting Geth in ephemeral dev mode...")

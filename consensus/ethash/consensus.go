@@ -41,7 +41,7 @@ import (
 var (
 	FrontierBlockReward  *big.Int = new(big.Int).Mul(big.NewInt(10), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block
 	ByzantiumBlockReward *big.Int = new(big.Int).Mul(big.NewInt(10), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block upward from Byzantium
-	//Constantinople Disabled For Ether-1 Implementation
+	//Constantinople Disabled For Etho Protocol Implementation
 	ConstantinopleBlockReward *big.Int = new(big.Int).Mul(big.NewInt(10), big.NewInt(1e+18)) // Block reward in wei for successfully mining a block upward from Constantinople
 	minerBlockReward          *big.Int = new(big.Int).Mul(big.NewInt(10), big.NewInt(1e+18))
 	masternodeBlockReward     *big.Int = big.NewInt(2e+18)

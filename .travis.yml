@@ -1,5 +1,5 @@
 language:           go
-go_import_path:     github.com/Ether1Project/Ether1
+go_import_path:     github.com/ethoprotocol/ethoprotocol
 sudo:               false
 jobs:
   allow_failures:

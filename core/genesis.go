@@ -448,7 +448,7 @@ func (g *Genesis) MustCommit(db ethdb.Database) *types.Block {
 	return block
 }
 
-// DefaultGenesisBlock returns the Ether-1 main net genesis block.
+// DefaultGenesisBlock returns the Etho Protocol main net genesis block.
 func DefaultGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:     params.MainnetChainConfig,
@@ -460,7 +460,7 @@ func DefaultGenesisBlock() *Genesis {
 	}
 }
 
-// DefaultHyperCubeGenesisBlock returns the Ether-1 main net genesis block.
+// DefaultHyperCubeGenesisBlock returns the Etho Protocol HyperCube test net genesis block.
 func DefaultHyperCubeGenesisBlock() *Genesis {
 	return &Genesis{
 		Config:     params.HyperCubeChainConfig,

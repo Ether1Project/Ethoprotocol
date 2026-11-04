@@ -125,7 +125,7 @@ var (
 	}
 	MainnetFlag = &cli.BoolFlag{
 		Name:     "mainnet",
-		Usage:    "Ethereum mainnet",
+		Usage:    "Etho Protocol mainnet",
 		Category: flags.EthCategory,
 	}
 	RopstenFlag = &cli.BoolFlag{
@@ -145,7 +145,7 @@ var (
 	}
 	HyperCubeFlag = &cli.BoolFlag{
 		Name:     "hypercube",
-		Usage:    "HyperCube network: pre-configured Ether-1 proof-of-work test network",
+		Usage:    "HyperCube network: pre-configured Etho Protocol proof-of-work test network",
 		Category: flags.EthCategory,
 	}
 	SepoliaFlag = &cli.BoolFlag{

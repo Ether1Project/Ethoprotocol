@@ -19,7 +19,7 @@ package params
 import "github.com/ethereum/go-ethereum/common"
 
 // MainnetBootnodes are the enode URLs of the P2P bootstrap nodes running on
-// the main Ether-1 network.
+// the main Etho Protocol network.
 var MainnetBootnodes = []string{
 	"enode://a1adc27c5fd897fc4b34982575f127bb301d95667afff122800b1cb9453f406cc4f5fcdd0e78ccbbaf7a9497cb4adf315bc98e904a0ca230446b2bb18e0e911a@62.72.177.111:31100",
 	"enode://98b92937b5385fe49062e7ba759f80447c2ecdc6e3e2db4fda6f40a4966722a998c4c1f381f7a6644fff1c700173639b15b75a5de7457fccedaf86cc5b04ca68@62.72.177.99:29999",
